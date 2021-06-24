@@ -68,33 +68,13 @@
                             :row-class-name="tableRowClassName"
                             :default-sort = "{prop: 'date', order: 'descending'}"
                             >
-                            <el-table-column
-                                prop="department"
-                                label="单位"
-                                sortable>
-                            </el-table-column>
-                            <el-table-column
-                                prop="warningNum"
-                                width="120"
-                                label="预警信息数量(数量)"
-                                sortable>
-                            </el-table-column>
-                            <el-table-column
-                                width="130"
-                                prop="seperateWarningNum"
-                                sortable
-                                label="分拨/处理预警信息数量（条）">
-                            </el-table-column>
-                            <el-table-column
-                                width="130"
-                                prop="dueWarningNum"
-                                label="截止当前办结预警信息数量"
-                                sortable>
-                            </el-table-column>
-                            <el-table-column
-                                prop="closingRate"
-                                label="办结率（%）"
-                                sortable>
+                            <el-table-column v-for="(item,index) in tablesHeader"
+                                :key="index"
+                                :prop="item.prop"
+                                :label="item.label"
+                                :width="item.width"
+                                :sortable="item.sortable"
+                                show-overflow-tooltip>
                             </el-table-column>
                         </el-table>
                     </div>
@@ -110,34 +90,13 @@
                             
                             :default-sort = "{prop: 'date', order: 'descending'}"
                             >
-                            <el-table-column
-                                prop="department"
-                                label="单位"
-                                :show-overflow-tooltip='true'   
-                                sortable>
-                            </el-table-column>
-                            <el-table-column
-                                prop="warningNum"
-                                width="120"
-                                label="预警信息数量(数量)"
-                                sortable>
-                            </el-table-column>
-                            <el-table-column
-                                width="130"
-                                prop="seperateWarningNum"
-                                sortable
-                                label="分拨/处理预警信息数量（条）">
-                            </el-table-column>
-                            <el-table-column
-                                width="130"
-                                prop="dueWarningNum"
-                                label="截止当前办结预警信息数量"
-                                sortable>
-                            </el-table-column>
-                            <el-table-column
-                                prop="closingRate"
-                                label="办结率（%）"
-                                sortable>
+                            <el-table-column v-for="(item,index) in tablesHeader"
+                                :key="index"
+                                :prop="item.prop"
+                                :label="item.label"
+                                :width="item.width"
+                                :sortable="item.sortable"
+                                show-overflow-tooltip>
                             </el-table-column>
                         </el-table>
                     </div>
@@ -171,64 +130,25 @@
             <div class="data-show2">
                 <div class="content-desc flex">
                     <div class="data-table white-bg">
-                            <el-table
-                            :data="totalTableData"
-                            style="width: 100%;height: 90%;overflow: auto;border: 1px solid rgb(240,240,240);"
-                            :row-class-name="tableRowClassName"
-                            
-                            :default-sort = "{prop: 'date', order: 'descending'}"
-                            >
+                        <el-table
+                        :data="totalTableData"
+                        style="width: 100%;height: 90%;overflow: auto;border: 1px solid rgb(240,240,240);"
+                        :row-class-name="tableRowClassName"
+                        
+                        :default-sort = "{prop: 'date', order: 'descending'}"
+                        >
                             <el-table-column
                                 type="index"
                                 width="50"
                                 label="序号">
                             </el-table-column>
-                            <el-table-column
-                                prop="department"
-                                label="单位"
-                                :show-overflow-tooltip='true'>
-                            </el-table-column>
-                            <el-table-column
-                                prop="month"
-                                label="统计月份">
-                            </el-table-column>
-                            <el-table-column
-                                prop="warningNum"
-                                width="100"
-                                label="预警信息数量(条)"
-                                sortable>
-                            </el-table-column>
-                            <el-table-column
-                                width="130"
-                                prop="seperateWarningNum"
-                                sortable
-                                label="分拨/处理预警信息数量（条）">
-                            </el-table-column>
-                            <el-table-column
-                                width="120"
-                                prop="dueWarningNum"
-                                label="截止当前办结预警信息数量"
-                                sortable>
-                            </el-table-column>
-                            <el-table-column
-                                prop="closingRate"
-                                label="办结率（%）"
-                                width="100"
-                                sortable>
-                            </el-table-column>
-                            <el-table-column
-                                prop="timeOut"
-                                label="超办理时限(15天)单数"
-                                sortable>
-                            </el-table-column>
-                            <el-table-column
-                                prop="hours"
-                                label="24小时分拨率(隶属)"
-                                sortable>
-                            </el-table-column>
-                            <el-table-column
-                                prop="remark"
-                                label="备注">
+                            <el-table-column v-for="(item,index) in totalTablesHeader"
+                                :key="index"
+                                :prop="item.prop"
+                                :label="item.label"
+                                :width="item.width"
+                                :sortable="item.sortable"
+                                show-overflow-tooltip>
                             </el-table-column>
                         </el-table>
                         <div style="margin-top: 20px;display: flex;justify-content: flex-end">
@@ -281,6 +201,8 @@
 
 <script>
 import echarts from 'echarts'
+import corls from './components/corls'
+//  import { getFruitAllData} from '@/api/index'
 export default {
     name: 'Index',
      data () {
@@ -333,6 +255,8 @@ export default {
             value1: '',
             value2: '',
             num: '',
+            tablesHeader: corls.tablesHeader,
+            totalTablesHeader: corls.totalTablesHeader,
             tableData: [
                 {
                     department: '防城海关',
@@ -477,8 +401,20 @@ export default {
         this.lineCharts4()
         this.lineCharts5()
         this.lineCharts6()
+        // this.getFruitAllData()
     },
     methods: {
+    //     getFruitAllData() {
+    //        let data = {
+    //         current:1,
+    //         pageSize:10
+    //        }
+    //        getFruitAllData(data).then((res) => {
+    //           console.log(res)
+    //         }).catch(err =>{
+    //             console.log(err)
+    //         })
+    //    },
         // 分页属性
         handleSizeChange (val) {
             this.limit = val
@@ -1124,6 +1060,12 @@ export default {
             border-right: 0;
         }
     }
+    .subtitle {
+        padding: 10px 0;
+    }
+    .chart-div {
+        border: 1px solid #f1f1f1;
+    }
     .white-bg {
         background: #fff;
         margin-bottom: 20px;
@@ -1216,10 +1158,6 @@ export default {
                 width: 49%;
                 height: 100%;
             }
-            .subtitle {
-                padding: 10px 0;
-            }
-            
             .el-table thead {
                 color: #919EAB;
                 font-weight: 400;
@@ -1231,6 +1169,7 @@ export default {
             box-sizing: border-box;
             padding: 0 10px;
             .content-desc {
+                padding: 20px 0 0 0;
                 width: 100%;
                 height: 350px;
             }
@@ -1261,15 +1200,15 @@ export default {
             }
             .data-table,
             .data-echatrs {
+                &.white-bg {
+                    margin-bottom: 0;
+                }
                 padding: 20px 10px;
                 box-sizing: border-box;
             }
             .charts {
                 width: 100%;
                 height: 300px;
-            }
-            .chart-div {
-                border: 1px solid #f1f1f1;
             }
         }
     }
