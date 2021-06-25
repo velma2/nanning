@@ -14,25 +14,25 @@
             <div class="search-options white-bg flex-row-sb">
                 <div class="flex-row search-option" style="width: 20%">
                     <span class="title">搜索</span>
-                    <el-input placeholder="请输入" v-model="input1" class="input-with-select">
+                    <el-input placeholder="请输入" v-model="searchInput" class="input-with-select">
                         <el-button slot="append" icon="el-icon-search"></el-button>
                     </el-input>
                 </div>
                 <div class="flex-row search-option" style="width: 15%">
                     <span class="title">组织机构</span>
-                    <el-select v-model="value" filterable placeholder="请选择名称">
+                    <el-select v-model="optionvalue" filterable placeholder="请选择名称">
                         <el-option
-                        v-for="item in options"
-                        :key="item.value"
-                        :label="item.label"
-                        :value="item.value">
+                            v-for="item in options"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value">
                         </el-option>
                     </el-select>
                 </div>
                 <div class="flex-row search-option" style="width: 25%">
                     <span class="title">时间</span>
                    <el-date-picker
-                        v-model="value2"
+                        v-model="processingTime"
                         type="daterange"
                         align="right"
                         unlink-panels
@@ -155,10 +155,10 @@
                         <el-pagination @size-change="handleSizeChange"
                             :page-sizes="[10, 20, 30, 40]"
                             @current-change="handleCurrentChange"
-                            :current-page.sync="page"
-                            :page-size="limit"
+                            :current-page.sync="pagination.page"
+                            :page-size="pagination.limit"
                             layout="sizes,total, prev, pager, next, jumper"
-                            :total="total">
+                            :total="pagination.total">
                         </el-pagination>
                     </div>
                     </div>
@@ -207,197 +207,80 @@ export default {
     name: 'Index',
      data () {
         return {
-            input1: '',
-             options: [{
-                value: '选项1',
-                label: '防城海关'
-                }, {
-                value: '选项2',
-                label: '钦州港海关'
-                }, {
-                value: '选项3',
-                label: '友谊关海关'
-                }, {
-                value: '选项4',
-                label: '北海海关'
-                }, {
-                value: '选项5',
-                label: '梧州海关'
-                }],
-            value: '',
+            searchInput: '', // 搜索框得值
+            options: corls.options,
+            optionvalue: '', // 组织机构选中的值
             pickerOptions: {
-            shortcuts: [{
-                text: '最近一周',
-                onClick(picker) {
-                const end = new Date();
-                const start = new Date();
-                start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
-                picker.$emit('pick', [start, end]);
-                }
-            }, {
-                text: '最近一个月',
-                onClick(picker) {
-                const end = new Date();
-                const start = new Date();
-                start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
-                picker.$emit('pick', [start, end]);
-                }
-            }, {
-                text: '最近三个月',
-                onClick(picker) {
-                const end = new Date();
-                const start = new Date();
-                start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
-                picker.$emit('pick', [start, end]);
-                }
-            }]
+                shortcuts: [{
+                    text: '最近一周',
+                    onClick(picker) {
+                    const end = new Date();
+                    const start = new Date();
+                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+                    picker.$emit('pick', [start, end]);
+                    }
+                }, {
+                    text: '最近一个月',
+                    onClick(picker) {
+                    const end = new Date();
+                    const start = new Date();
+                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+                    picker.$emit('pick', [start, end]);
+                    }
+                }, {
+                    text: '最近三个月',
+                    onClick(picker) {
+                    const end = new Date();
+                    const start = new Date();
+                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+                    picker.$emit('pick', [start, end]);
+                    }
+                }]
             },
-            value1: '',
-            value2: '',
-            num: '',
+            slectTime: '', // 预警开始时间和结束时间
+            processingTime: '', // 办理时长
             tablesHeader: corls.tablesHeader,
             totalTablesHeader: corls.totalTablesHeader,
-            tableData: [
+            tableData: corls.tableData,
+            subordinateData: corls.subordinateData,
+            totalTableData: corls.totalTableData,
+            pagination: {
+                page: 1,
+                limit: 10,
+                total: 30,
+            },
+            lineChartsData: [
                 {
-                    department: '防城海关',
-                    warningNum: 1419,
-                    seperateWarningNum: 1419,
-                    dueWarningNum: 21,
-                    closingRate: 1.48
+                    id: 'line-chart1',
+                    color: '#5B8FF9',
+                    data : {
+                        date: ['202001', '202002','202003','202004','202005','202006','202007' ],
+                        data: [800, 700, 600, 500, 400, 330, 300, 280]
+                    },
                 },
                 {
-                    department: '钦州港海关',
-                    warningNum: 719,
-                    seperateWarningNum: 719,
-                    dueWarningNum: 78,
-                    closingRate: 10.58
+                    id: 'line-chart2',
+                    color: '#FFC53D',
+                    data : {
+                        date: ['202001', '202002','202003','202004','202005','202006','202007' ],
+                        data: [800, 700, 600, 500, 400, 330, 300, 280]
+                    },
                 },
                 {
-                    department: '友谊关海关',
-                    warningNum: 568,
-                    seperateWarningNum: 568,
-                    dueWarningNum: 126,
-                    closingRate: 22.18
-                },
-                {
-                    department: '北海海关',
-                    warningNum: 224,
-                    seperateWarningNum: 224,
-                    dueWarningNum: 75,
-                    closingRate: 22.48
-                },
-                {
-                    department: '梧州海关',
-                    warningNum: 77,
-                    seperateWarningNum: 77,
-                    dueWarningNum: 35,
-                    closingRate: 45.45
-                },
-            ],
-            subordinateData: [
-                {
-                    department: '关税处',
-                    warningNum: 1419,
-                    seperateWarningNum: 1419,
-                    dueWarningNum: 21,
-                    closingRate: 1.48
-                },
-                {
-                    department: '综合业务处',
-                    warningNum: 719,
-                    seperateWarningNum: 719,
-                    dueWarningNum: 78,
-                    closingRate: 10.58
-                },
-                {
-                    department: '口岸监管处',
-                    warningNum: 568,
-                    seperateWarningNum: 568,
-                    dueWarningNum: 126,
-                    closingRate: 22.18
-                },
-                {
-                    department: '动植物和食品检验检疫处',
-                    warningNum: 224,
-                    seperateWarningNum: 224,
-                    dueWarningNum: 75,
-                    closingRate: 22.48
-                },
-                {
-                    department: '风险防控分局',
-                    warningNum: 77,
-                    seperateWarningNum: 0,
-                    dueWarningNum: 0,
-                    closingRate: 0
-                },
-            ],
-            totalTableData: [
-                {
-                    department: '防城海关',
-                    month: 202104,
-                    warningNum: 1419,
-                    seperateWarningNum: 1419,
-                    dueWarningNum: 21,
-                    closingRate: 1.48,
-                    timeOut: 11,
-                    hours: '-',
-                    remark: '-'
-                },
-                {
-                    department: '钦州港海关',
-                    month: 202104,
-                    warningNum: 719,
-                    seperateWarningNum: 719,
-                    dueWarningNum: 78,
-                    closingRate: 10.58,
-                    timeOut: 11,
-                    hours: '-',
-                    remark: '-'
-                },
-                {
-                    department: '友谊关海关',
-                    month: 202104,
-                    warningNum: 568,
-                    seperateWarningNum: 568,
-                    dueWarningNum: 126,
-                    closingRate: 22.18,
-                    timeOut: 11,
-                    hours: '-',
-                    remark: '-'
-                },
-                {
-                    department: '北海海关',
-                    month: 202104,
-                    warningNum: 224,
-                    seperateWarningNum: 224,
-                    dueWarningNum: 75,
-                    closingRate: 22.48,
-                    timeOut: 11,
-                    hours: '-',
-                    remark: '-'
-                },
-                {
-                    department: '梧州海关',
-                    month: 202104,
-                    warningNum: 77,
-                    seperateWarningNum: 77,
-                    dueWarningNum: 35,
-                    closingRate: 45.45,
-                    timeOut: 11,
-                    hours: '-',
-                    remark: '-'
-                },
-            ],
-            page: 1,
-            limit: 10,
-            total: 30,
-            
+                    id: 'line-chart3',
+                    color: '#69C0FF',
+                    data : {
+                        date: ['202001', '202002','202003','202004','202005','202006','202007' ],
+                        data: [800, 700, 600, 500, 400, 330, 300, 280]
+                    },
+                }
+            ]
         }
     },
     mounted() {
-        this.lineCharts()
-        this.lineCharts2()
-        this.lineCharts3()
+        for(let j = 0; j < this.lineChartsData.length ; j++) {
+            this.lineCharts(this.lineChartsData[j])
+        }
         this.lineCharts4()
         this.lineCharts5()
         this.lineCharts6()
@@ -424,6 +307,7 @@ export default {
             this.current = val
             this.loadData()
         },
+        // 表格样式设置
         tableRowClassName({row, rowIndex}) {
             console.log(row)
             if (rowIndex % 2 !== 0) {
@@ -433,8 +317,8 @@ export default {
             }
         },
         //  南宁海关预警信息数量
-        lineCharts() {
-            let chartDom = document.getElementById('line-chart1');
+        lineCharts(dataList) {
+            let chartDom = document.getElementById(dataList.id);
             let myChart = echarts.init(chartDom);
             let option = {
                 title: {
@@ -460,7 +344,7 @@ export default {
                         interval:0,  
                         rotate:-15 ,
                         textStyle: {
-                            color: '#2C3542'
+                            color: 'rgba(0,0,0,0.5)',
                         } 
                     }, 
                     axisLine: {
@@ -468,7 +352,8 @@ export default {
                             color: 'rgba(0,0,0,0.05)',
                         }
                     },
-                    data: ['202001', '202002','202003','202004','202005','202006','202007' ]
+                    // data: ['202001', '202002','202003','202004','202005','202006','202007' ]
+                    data: dataList.data.date
                 },
                 yAxis: {
                     type: 'value',
@@ -495,7 +380,8 @@ export default {
                         name: '南宁海关预警信息数量',
                         type: 'line',
                         symbol:'circle',
-                        color: '#5B8FF9',
+                        // color: '#5B8FF9',
+                        color: dataList.color,
                         areaStyle: {
                             normal: {
                                 color: {
@@ -506,7 +392,8 @@ export default {
                                     y2: 1,
                                     colorStops: [{
                                         offset: 0,
-                                        color: '#5B8FF9',
+                                        // color: '#5B8FF9',
+                                        color: dataList.color,
                                     }, {
                                         offset: 1,
                                         color: 'white',
@@ -515,197 +402,12 @@ export default {
                                 },
                             }
                         },
-                        data: [800, 700, 600, 500, 400, 330, 300, 280],
+                        // data: [800, 700, 600, 500, 400, 330, 300, 280],
+                        data: dataList.data.data,
                     }
                 ]
             };
             option && myChart.setOption(option)
-            window.addEventListener("resize", function () {
-                myChart.resize()
-            });
-        },
-        
-        //  南宁海关-超办理时限（15天）单数
-        lineCharts2() {
-            let chartDom = document.getElementById('line-chart2');
-            let myChart = echarts.init(chartDom);
-            let option = {
-                title: {
-                    // text: '江门市蓬江区芝山五金工艺制品有限公司产值估计'
-                },
-                tooltip: {
-                    trigger: 'axis'
-                },
-                grid: {
-                    left: '3%',
-                    right: '9%',
-                    bottom: '7%',
-                    top: '8%',
-                    containLabel: true
-                },
-                xAxis: {    
-                    type: 'category',
-                    axisTick: {
-                        show: false
-                    },
-                    boundaryGap: false,
-                    axisLabel: {  
-                        interval:0,  
-                        rotate:-15,
-                        textStyle: {
-                            color: '#2C3542'
-                        } 
-                    }, 
-                    axisLine: {
-                        lineStyle: {
-                            color: 'rgba(0,0,0,0.05)',
-                        }
-                    },
-                    data: ['202001', '202002','202003','202004','202005','202006','202007' ]
-                },
-                yAxis: {
-                    type: 'value',
-                    max: function(value) {
-                        return value.max + 400
-                    },
-                    axisLine: {show:false},
-                    axisTick: {show:false},
-                    axisLabel: {
-                        textStyle: {
-                            color: 'rgba(0,0,0,0.45)',
-                            fontSize: 14,
-                        }
-                    },
-                    splitLine: {
-                        show: true,
-                        lineStyle:{
-                            color: 'rgba(0,0,0,0.15)'
-                        }
-                    }
-                },
-                series: [
-                    {
-                        name: '南宁海关-超办理时限（15天）单数',
-                        type: 'line',
-                        symbol:'circle',
-                        color: '#FFC53D',
-                        areaStyle: {
-                            normal: {
-                                color: {
-                                    type: 'linear',
-                                    x0: 0,
-                                    y0: 0,
-                                    x2: 0,
-                                    y2: 1,
-                                    colorStops: [{
-                                        offset: 0,
-                                        color: '#FFC53D',
-                                    }, {
-                                        offset: 1,
-                                        color: 'white',
-                                    }],
-                                    globalCoord: false
-                                },
-                            }
-                        },
-                        data: [800, 700, 600, 500, 400, 330, 300, 280],
-                    }
-                ]
-            };
-            option && myChart.setOption(option);
-            window.addEventListener("resize", function () {
-                myChart.resize()
-            });
-        },
-    
-        //  南宁海关-截止当前办结预警信息数量 （条）
-        lineCharts3() {
-            let chartDom = document.getElementById('line-chart3');
-            let myChart = echarts.init(chartDom);
-            let option = {
-                title: {
-                    // text: '江门市蓬江区芝山五金工艺制品有限公司产值估计'
-                },
-                tooltip: {
-                    trigger: 'axis'
-                },
-                grid: {
-                    left: '3%',
-                    right: '9%',
-                    bottom: '7%',
-                    top: '8%',
-                    containLabel: true
-                },
-                xAxis: {    
-                    type: 'category',
-                    axisTick: {
-                        show: false
-                    },
-                    axisLine: {
-                        lineStyle: {
-                            color: 'rgba(0,0,0,0.05)',
-                        }
-                    },
-                    boundaryGap: false,
-                    axisLabel: {  
-                        interval:0,  
-                        rotate:-15,
-                        textStyle: {
-                            color: '#2C3542'
-                        } 
-                    }, 
-                    data: ['202001', '202002','202003','202004','202005','202006','202007' ]
-                },
-                yAxis: {
-                    type: 'value',
-                    max: function(value) {
-                        return value.max + 400
-                    },
-                     axisLine: {show:false},
-                    axisTick: {show:false},
-                    axisLabel: {
-                        textStyle: {
-                            color: 'rgba(0,0,0,0.45)',
-                            fontSize: 14,
-                        }
-                    },
-                    splitLine: {
-                        show: true,
-                        lineStyle:{
-                            color: 'rgba(0,0,0,0.15)'
-                        }
-                    }
-                },
-                series: [
-                    {
-                        name: '南宁海关-超办理时限（15天）单数',
-                        type: 'line',
-                        symbol:'circle',
-                        color: '#69C0FF',
-                        areaStyle: {
-                            normal: {
-                                color: {
-                                    type: 'linear',
-                                    x0: 0,
-                                    y0: 0,
-                                    x2: 0,
-                                    y2: 1,
-                                    colorStops: [{
-                                        offset: 0,
-                                        color: '#69C0FF',
-                                    }, {
-                                        offset: 1,
-                                        color: 'white',
-                                    }],
-                                    globalCoord: false
-                                },
-                            }
-                        },
-                        data: [800, 700, 600, 500, 400, 330, 300, 280],
-                    }
-                ]
-            };
-            option && myChart.setOption(option);
             window.addEventListener("resize", function () {
                 myChart.resize()
             });
@@ -750,7 +452,7 @@ export default {
                         interval:0,  
                         rotate:-15,
                         textStyle: {
-                            color: '#2C3542'
+                            color: 'rgba(0,0,0,0.5)',
                         } 
                     }, 
                     data: ['6:00', '8:00','10:00','12:00','14:00','16:00','18:00','20:00','22:00' ]
@@ -850,7 +552,7 @@ export default {
                     axisLabel: {  
                         interval:0,  
                         textStyle: {
-                            color: '#2C3542'
+                            color: 'rgba(0,0,0,0.5)',
                         } 
                         // rotate:-30  
                     }, 
@@ -878,7 +580,7 @@ export default {
                 },
                 series: [
                     {
-                        name: '类别一',
+                        name: '预警开始时间',
                         type: 'line',
                         symbol:'circle',
                         color: '#00DAFF',
@@ -901,11 +603,11 @@ export default {
                                 },
                             }
                         },
-                        data: ['400', '400', '400', '400', '400', '400', '400', '400', '400', '400', '400', '400' ],
+                        data: ['400', '400', '400', '500', '400', '700', '400', '400', '400', '400', '400', '400' ],
                         // data: ['2:00', '2:00', '2:00', '2:00', '2:00', '2:00', '2:00' ],
                     },
                     {
-                        name: '类别二',
+                        name: '预警结束时间',
                         type: 'line',
                         symbol:'circle',
                         color: '#FDCA15',
@@ -928,7 +630,7 @@ export default {
                                 },
                             }
                         },
-                        data: ['200', '200', '200', '200', '200', '200', '200', '200', '200', '200', '200', '200' ],
+                        data: ['200', '200', '300', '200', '200', '200', '200', '200', '200', '200', '200', '200' ],
                         // data: ['4:00', '4:00', '4:00', '4:00', '4:00', '4:00', '4:00' ],
                     }
                 ]
@@ -963,7 +665,7 @@ export default {
                         axisLabel: {  
                             interval:0,  
                             textStyle: {
-                                color: '#2C3542'
+                                color: 'rgba(0,0,0,0.5)',
                             } 
                         }, 
                         type: 'category',
