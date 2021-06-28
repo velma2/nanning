@@ -32,7 +32,7 @@
                 <div class="flex-row search-option" style="width: 25%">
                     <span class="title">时间</span>
                    <el-date-picker
-                        v-model="processingTime"
+                        v-model="slectTime"
                         type="daterange"
                         align="right"
                         unlink-panels
@@ -44,11 +44,11 @@
                 </div>
                 <div  class="flex-row search-option" style="width: 20%">
                     <span class="title">办理时长</span>
-                    <el-input-number v-model="num" controls-position="right" @change="handleChange" :min="1" :max="10" placeholder="请选择时间"></el-input-number>
+                    <el-input-number v-model="processingTime" controls-position="right" :min="1" :max="10" placeholder="请选择时间"></el-input-number>
                 </div>
                 <div>
-                    <el-button>重置</el-button>
-                    <el-button type="primary">确认</el-button>
+                    <el-button  @click="resetValue">重置</el-button>
+                    <el-button type="primary" @click="confirmSearch">确认</el-button>
                 </div>
             </div>
             <div class="top-five white-bg">
@@ -207,7 +207,7 @@ export default {
     name: 'Index',
      data () {
         return {
-            searchInput: '', // 搜索框得值
+            searchInput: '', // 搜索框的值
             options: corls.options,
             optionvalue: '', // 组织机构选中的值
             pickerOptions: {
@@ -287,6 +287,21 @@ export default {
         // this.getFruitAllData()
     },
     methods: {
+        // 重置
+        resetValue() {
+            
+        },
+        // 搜索确认
+        confirmSearch() {
+            console.log(this.searchInput)
+            console.log(this.optionvalue)
+            console.log(this.slectTime)
+            let startTime = this.moment(this.slectTime[0]).format("YYYY-MM-DD");
+            let endTime = this.moment(this.slectTime[1]).format("YYYY-MM-DD");
+            console.log(startTime)
+            console.log(endTime)
+            console.log(this.processingTime)
+        },
     //     getFruitAllData() {
     //        let data = {
     //         current:1,
@@ -560,12 +575,12 @@ export default {
                 },
                 yAxis: {
                     type: 'value',
-                    max: function(value) {
-                        return value.max + 400
-                    },
+                    max: 24,
+                    splitNumber : 5,
                     axisLine: {show:false},
                     axisTick: {show:false},
                     axisLabel: {
+                        formatter: '{value} :00',
                         textStyle: {
                             color: 'rgba(0,0,0,0.45)',
                             fontSize: 14,
@@ -603,8 +618,8 @@ export default {
                                 },
                             }
                         },
-                        data: ['400', '400', '400', '500', '400', '700', '400', '400', '400', '400', '400', '400' ],
-                        // data: ['2:00', '2:00', '2:00', '2:00', '2:00', '2:00', '2:00' ],
+                        // data: ['400', '400', '400', '500', '400', '700', '400', '400', '400', '400', '400', '400' ],
+                        data: ['2', '3', '2', '4', '2', '2', '2' ],
                     },
                     {
                         name: '预警结束时间',
@@ -630,8 +645,7 @@ export default {
                                 },
                             }
                         },
-                        data: ['200', '200', '300', '200', '200', '200', '200', '200', '200', '200', '200', '200' ],
-                        // data: ['4:00', '4:00', '4:00', '4:00', '4:00', '4:00', '4:00' ],
+                        data: ['4', '5', '4', '5', '4', '10', '22' ],
                     }
                 ]
             };

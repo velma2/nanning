@@ -5,9 +5,11 @@ import 'element-ui/lib/theme-chalk/index.css'
 import router from './router'
 import VueCookie from 'vue-cookie'
 import axios from 'axios'
-import httpRequest from './utils/httpRequest';
+import httpRequest from './utils/httpRequest'
+import moment from 'moment'
 Vue.config.productionTip = false
 Vue.prototype.axios = axios
+Vue.prototype.moment = moment
 Vue.use(ElementUI)
 Vue.use(VueCookie)
 // 挂载全局
