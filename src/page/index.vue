@@ -20,14 +20,8 @@
                 </div>
                 <div class="flex-row search-option" style="width: 15%">
                     <span class="title">组织机构</span>
-                    <el-select v-model="optionvalue" filterable placeholder="请选择名称">
-                        <el-option
-                            v-for="item in options"
-                            :key="item.value"
-                            :label="item.label"
-                            :value="item.value">
-                        </el-option>
-                    </el-select>
+                    <el-cascader v-model="optionvalue" :options="options" filterable placeholder="请选择名称">
+                    </el-cascader>
                 </div>
                 <div class="flex-row search-option" style="width: 25%">
                     <span class="title">时间</span>
@@ -185,7 +179,7 @@
                         <div>
                             <div class="subtitle flex-row">
                                 <span class="title-line"></span>
-                                <span>半结时长</span>
+                                <span>单位：单</span>
                             </div>
                             <div id="line-chart6" class="charts chart-div">
 
@@ -274,7 +268,29 @@ export default {
                         data: [800, 700, 600, 500, 400, 330, 300, 280]
                     },
                 }
-            ]
+            ],
+            warningQuantitySort: {
+                date:['6:00','8:00','10:00','12:00','14:00','16:00','18:00','20:00','22:00'],
+                data:[
+                    [600, 700, 100, 500, 200, 300, 100, 100, 500],
+                    [300, 600, 300, 500, 500, 380, 330, 600, 300],
+                    [400, 600, 300, 200, 400, 310, 456, 600, 200],
+                    [700, 100, 800, 800, 400, 390, 555, 600, 333]
+                ]
+            },
+            warningQuantity: {
+                date: ['1', '2','3','4','5','6','7','8','9','10','11','12' ],
+                data: {
+                    // 预警开始时间
+                    startData: [2, 3, 2, 4, 2, 2, 2,2, 4, 2, 2, 2 ],
+                    // 预警结束时间
+                    endData : [4, 5, 4, 5, 4, 10, 22,4, 5, 4, 10,7 ]
+                }
+            },
+            halfKnotDuration: {
+                date: [1,2,3,4,5,6,7,8,9,10,11,12],
+                data: [120, 132, 101, 134, 90, 230, 210,100,120,130,140,170]
+            }
         }
     },
     mounted() {
@@ -336,6 +352,7 @@ export default {
             let chartDom = document.getElementById(dataList.id);
             let myChart = echarts.init(chartDom);
             let option = {
+                symbolSize:10,//拐点大小
                 title: {
                     // text: '江门市蓬江区芝山五金工艺制品有限公司产值估计'
                 },
@@ -470,7 +487,8 @@ export default {
                             color: 'rgba(0,0,0,0.5)',
                         } 
                     }, 
-                    data: ['6:00', '8:00','10:00','12:00','14:00','16:00','18:00','20:00','22:00' ]
+                    // data: ['6:00', '8:00','10:00','12:00','14:00','16:00','18:00','20:00','22:00' ]
+                    data: this.warningQuantitySort.date
                 },
                 yAxis: {
                     type: 'value',
@@ -498,28 +516,32 @@ export default {
                         type: 'line',
                         symbol:'circle',
                         color: '#5B8FF9',
-                        data: [600, 700, 100, 500, 200, 300, 100, 100, 500],
+                        // data: [600, 700, 100, 500, 200, 300, 100, 100, 500],
+                        data: this.warningQuantitySort.data[0]
                     },
                     {
                         name: '类别二',
                         type: 'line',
                         symbol:'circle',
                         color: '#40A9FF ',
-                        data: [300, 600, 300, 500, 500, 380, 330, 600, 300],
+                        // data: [300, 600, 300, 500, 500, 380, 330, 600, 300],
+                        data: this.warningQuantitySort.data[1]
                     },
                     {
                         name: '类别三',
                         type: 'line',
                         symbol:'circle',
                         color: '#FFC53D',
-                        data: [400, 600, 300, 200, 400, 310, 456, 600, 200],
+                        // data: [400, 600, 300, 200, 400, 310, 456, 600, 200],
+                        data: this.warningQuantitySort.data[2],
                     },
                     {
                         name: '类别四',
                         type: 'line',
                         symbol:'circle',
                         color: '#5AD8A6',
-                        data: [700, 100, 800, 800, 400, 390, 555, 600, 333],
+                        // data: [700, 100, 800, 800, 400, 390, 555, 600, 333],
+                        data: this.warningQuantitySort.data[3],
                     }
                 ]
             };
@@ -571,7 +593,8 @@ export default {
                         } 
                         // rotate:-30  
                     }, 
-                    data: ['1', '2','3','4','5','6','7','8','9','10','11','12' ]
+                    // data: ['1', '2','3','4','5','6','7','8','9','10','11','12' ]
+                    data: this.warningQuantity.date
                 },
                 yAxis: {
                     type: 'value',
@@ -619,7 +642,8 @@ export default {
                             }
                         },
                         // data: ['400', '400', '400', '500', '400', '700', '400', '400', '400', '400', '400', '400' ],
-                        data: ['2', '3', '2', '4', '2', '2', '2' ],
+                        // data: [2, 3, 2, 4, 2, 2, 2,2, 4, 2, 2, 2 ],
+                        data: this.warningQuantity.data.startData,
                     },
                     {
                         name: '预警结束时间',
@@ -645,7 +669,8 @@ export default {
                                 },
                             }
                         },
-                        data: ['4', '5', '4', '5', '4', '10', '22' ],
+                        // data: [4, 5, 4, 5, 4, 10, 22,4, 5, 4, 10,7 ],
+                        data: this.warningQuantity.data.endData,
                     }
                 ]
             };
@@ -692,14 +717,15 @@ export default {
                             }
                         },
                         
-                        data: [1,2,3,4,5,6,7,8,9,10,11,12]
+                        // data: [1,2,3,4,5,6,7,8,9,10,11,12]
+                        data: this.halfKnotDuration.date
                     }
                 ],
                 yAxis: {
                     type: 'value',
-                    max: function(value) {
-                        return value.max + 204
-                    },
+                    // max: function(value) {
+                    //     return value.max + 204
+                    // },
                     axisLine: {show:false},
                     axisTick: {show:false},
                     axisLabel: {
@@ -717,25 +743,26 @@ export default {
                 },
                 series: [
                     {
-                        name: '邮件营销',
+                        name: '办结时长',
                         type: 'bar',
                         stack: '广告',
                         color: '#5AD8A6',
                         emphasis: {
                             focus: 'series'
                         },
-                        data: [120, 132, 101, 134, 90, 230, 210,100,120,130,140,170]
+                        // data: [120, 132, 101, 134, 90, 230, 210,100,120,130,140,170]
+                        data: this.halfKnotDuration.data
                     },
-                    {
-                        name: '联盟广告',
-                        type: 'bar',
-                        color:'#FFC53D',
-                        stack: '广告',
-                        emphasis: {
-                            focus: 'series'
-                        },
-                        data: [11, 22, 33, 44, 55, 66, 33,10,22,11,55,66]
-                    }, 
+                    // {
+                    //     name: '联盟广告',
+                    //     type: 'bar',
+                    //     color:'#FFC53D',
+                    //     stack: '广告',
+                    //     emphasis: {
+                    //         focus: 'series'
+                    //     },
+                    //     data: [11, 22, 33, 44, 55, 66, 33,10,22,11,55,66]
+                    // }, 
                 ]
             };
             option && myChart.setOption(option);

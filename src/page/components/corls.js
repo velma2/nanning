@@ -8,7 +8,7 @@ export default {
         },
         {
             prop: 'warningNum',
-            label: '预警信息数量(数量)',
+            label: '预警信息数量(条)',
             width: '120',
             sortable: true
         },
@@ -154,15 +154,15 @@ export default {
     ],
     totalTableData: [
         {
-            department: '防城海关',
-            month: 202104,
-            warningNum: 1419,
-            seperateWarningNum: 1419,
-            dueWarningNum: 21,
-            closingRate: 1.48,
-            timeOut: 11,
-            hours: '-',
-            remark: '-'
+            department: '防城海关', // 单位
+            month: 202104, // 统计月份
+            warningNum: 1419, // 预警信息数量(条)
+            seperateWarningNum: 1419, // 分拨/处理预警信息数量(条)
+            dueWarningNum: 21, // 截止当前办结预警信息数量
+            closingRate: 1.48, // 办结率（%）
+            timeOut: 11, // 超办理时限(15天)单数
+            hours: '-', // 24小时分拨率(隶属)
+            remark: '-' // 备注
         },
         {
             department: '钦州港海关',
@@ -210,19 +210,37 @@ export default {
         },
     ],
     options: [{
-        value: '防城海关',
-        label: '防城海关'
-    }, {
-        value: '钦州港海关',
-        label: '钦州港海关'
-    }, {
-        value: '友谊关海关',
-        label: '友谊关海关'
-    }, {
-        value: '北海海关',
-        label: '北海海关'
-    }, {
-        value: '梧州海关',
-        label: '梧州海关'
-    }]
+        value: 'zhinan',
+        label: '职能部门',
+        children: [{
+          value: 'shejiyuanze',
+          label: '关税处1',
+        }, {
+          value: 'daohang',
+          label: '综合业务处1',
+        }]
+      },
+      {
+        value: 'zhinan',
+        label: '隶属海关',
+        children: [{
+            value: 'shejiyuanze',
+            label: '关税处2',
+          }, {
+            value: 'daohang',
+            label: '综合业务处2',
+          }]
+      },
+      {
+        value: 'zhinan',
+        label: '预警时间设置',
+        children: [{
+            value: 'shejiyuanze',
+            label: '关税处3',
+          }, {
+            value: 'daohang',
+            label: '综合业务处3',
+          }]
+      }
+    ]
 }
