@@ -12,18 +12,30 @@
             </div>
             <div class="content">
             <div class="search-options white-bg flex-row-sb">
-                <div class="flex-row search-option" style="width: 20%">
+                <div class="flex-row search-option" style="width: 27%">
                     <span class="title">搜索</span>
-                    <el-input placeholder="请输入" v-model="searchInput" class="input-with-select">
-                        <el-button slot="append" icon="el-icon-search"></el-button>
+                    <el-input placeholder="请输入内容" v-model="searchInput" class="input-with-select" clearable>
+                        <el-select v-model="selectValue" slot="prepend" placeholder="请选择" clearable>
+                        <el-option label="北海海关" value="1"></el-option>
+                        <el-option label="检索预警单号" value="2"></el-option>
+                        </el-select>
+                        <el-button slot="append" icon="el-icon-search" @click="search"></el-button>
                     </el-input>
+                    <!-- <el-input
+                        placeholder="请输入"
+                        prefix-icon="el-icon-search"
+                        v-model="searchInput">
+                    </el-input> -->
+                    <!-- <el-input placeholder="请输入" v-model="searchInput" class="input-with-select">
+                        <el-button slot="append" icon="el-icon-search"></el-button>
+                    </el-input> -->
                 </div>
-                <div class="flex-row search-option" style="width: 15%">
+                <div class="flex-row search-option" style="width: 17%">
                     <span class="title">组织机构</span>
-                    <el-cascader v-model="optionvalue" :options="options" filterable placeholder="请选择名称">
+                    <el-cascader v-model="optionvalue" :options="options" filterable placeholder="请选择名称" clearable>
                     </el-cascader>
                 </div>
-                <div class="flex-row search-option" style="width: 25%">
+                <div class="flex-row search-option" style="width: 23%">
                     <span class="title">时间</span>
                    <el-date-picker
                         v-model="slectTime"
@@ -36,7 +48,7 @@
                         :picker-options="pickerOptions">
                     </el-date-picker>
                 </div>
-                <div  class="flex-row search-option" style="width: 20%">
+                <div  class="flex-row search-option" style="width: 13%">
                     <span class="title">办理时长</span>
                     <el-input-number v-model="processingTime" controls-position="right" :min="1" :max="10" placeholder="请选择时间"></el-input-number>
                 </div>
@@ -96,12 +108,12 @@
                     </div>
                 </div>
             </div>
-            <div class="data-show white-bg">
+            <div v-if="curSelectType == 1" class="data-show white-bg">
                 <div class="content-desc flex">
                     <div class="data-show-chart" style="margin-right: .5%;">
                         <div class="subtitle flex-row">
                             <span class="title-line"></span>
-                            <span>南宁海关预警信息数量 （条）</span>
+                            <span>南宁海关-预警信息数量 （条）</span>
                         </div>
                         <div id="line-chart1" class="chart-div"></div>
                     </div>
@@ -125,7 +137,7 @@
                 <div class="content-desc flex">
                     <div class="data-table white-bg">
                         <el-table
-                        :data="totalTableData"
+                        :data="curTotalTableData"
                         style="width: 100%;height: 90%;overflow: auto;border: 1px solid rgb(240,240,240);"
                         :row-class-name="tableRowClassName"
                         
@@ -136,7 +148,7 @@
                                 width="50"
                                 label="序号">
                             </el-table-column>
-                            <el-table-column v-for="(item,index) in totalTablesHeader"
+                            <el-table-column v-for="(item,index) in curTotalTablesHeader"
                                 :key="index"
                                 :prop="item.prop"
                                 :label="item.label"
@@ -147,6 +159,7 @@
                         </el-table>
                         <div style="margin-top: 20px;display: flex;justify-content: flex-end">
                         <el-pagination @size-change="handleSizeChange"
+                            background
                             :page-sizes="[10, 20, 30, 40]"
                             @current-change="handleCurrentChange"
                             :current-page.sync="pagination.page"
@@ -158,7 +171,7 @@
                     </div>
                     <div class="data-echatrs white-bg">
                             
-                        <div>
+                        <div class="charts-div">
                             <div class="subtitle flex-row">
                                 <span class="title-line"></span>
                                 <span>预警信息量排名</span>
@@ -167,7 +180,7 @@
 
                             </div>
                         </div>
-                        <div>
+                        <div class="charts-div">
                             <div class="subtitle flex-row">
                                 <span class="title-line"></span>
                                 <span>预警信息量</span>
@@ -176,7 +189,7 @@
 
                             </div>
                         </div>
-                        <div>
+                        <div class="charts-div">
                             <div class="subtitle flex-row">
                                 <span class="title-line"></span>
                                 <span>单位：单</span>
@@ -203,7 +216,9 @@ export default {
         return {
             searchInput: '', // 搜索框的值
             options: corls.options,
+            selectValue: '', // 搜索选择的类型值
             optionvalue: '', // 组织机构选中的值
+            curSelectType: 1, // 记录搜索选择的类型来判断中间三个折线图是否隐藏
             pickerOptions: {
                 shortcuts: [{
                     text: '最近一周',
@@ -233,6 +248,8 @@ export default {
             },
             slectTime: '', // 预警开始时间和结束时间
             processingTime: '', // 办理时长
+            curTotalTableData: corls.totalTableData, // 当前展示的表格名称
+            curTotalTablesHeader: corls.totalTablesHeader, // 当前展示的表格数据
             tablesHeader: corls.tablesHeader,
             totalTablesHeader: corls.totalTablesHeader,
             tableData: corls.tableData,
@@ -243,6 +260,7 @@ export default {
                 limit: 10,
                 total: 30,
             },
+            curShowChartsData: [],
             lineChartsData: [
                 {
                     id: 'line-chart1',
@@ -266,6 +284,64 @@ export default {
                     data : {
                         date: ['202001', '202002','202003','202004','202005','202006','202007' ],
                         data: [800, 700, 600, 500, 400, 330, 300, 280]
+                    },
+                }
+            ],
+            lineChartsData2:  [
+                {
+                    id: 'line-chart1',
+                    color: '#5B8FF9',
+                    data :  [
+                        {value: 1048, name: '关税处'},
+                        {value: 735, name: '综合业务处'},
+                        {value: 580, name: '口岸监管处'},
+                        {value: 484, name: '统计分析处'},
+                    ],
+                },
+                {
+                    id: 'line-chart2',
+                    color: '#FFC53D',
+                    data : {
+                        date:  ['监察室', '商品检验处', '卫生检疫处',
+        '企业管理和稽查处', '监督内审处', '综合业务处','动植物和视频检验检疫处','关税处','风险防控分局','统计分析处'
+        ],
+                        data: [120, 200, 150, 80, 70, 110, 130,120,130,150]
+                    },
+                },
+                {
+                    id: 'line-chart3',
+                    color: '#69C0FF',
+                    data : {
+                        date: ['202101', '202102', '202103', '202104', '202105', '202106', '202107'],
+                        data: [150, 230, 224, 218, 135, 147, 260]
+                    },
+                }
+            ],
+            lineChartsData3: [
+                {
+                    id: 'line-chart1',
+                    color: '#5B8FF9',
+                    data :  [
+                        {value: 1048, name: '关税处'},
+                        {value: 735, name: '综合业务处'},
+                        {value: 580, name: '口岸监管处'},
+                        {value: 484, name: '统计分析处'},
+                    ],
+                },
+                {
+                    id: 'line-chart2',
+                    color: '#FFC53D',
+                    data : {
+                        date:  [1.48, 2.34, 2.90, 1.04, 13.44, 6.30],
+                        data: ['桂林海关', '河池海关', '柳州海关', '玉林海关', '北海海关', '永口海关']
+                    },
+                },
+                {
+                    id: 'line-chart3',
+                    color: '#69C0FF',
+                    data : {
+                        date: ['202101', '202102', '202103', '202104', '202105', '202106', '202107'],
+                        data: [150, 230, 224, 218, 135, 147, 260]
                     },
                 }
             ],
@@ -294,8 +370,9 @@ export default {
         }
     },
     mounted() {
-        for(let j = 0; j < this.lineChartsData.length ; j++) {
-            this.lineCharts(this.lineChartsData[j])
+        this.curShowChartsData = this.lineChartsData
+        for(let j = 0; j < this.curShowChartsData.length ; j++) {
+            this.lineCharts(this.curShowChartsData[j])
         }
         this.lineCharts4()
         this.lineCharts5()
@@ -305,7 +382,10 @@ export default {
     methods: {
         // 重置
         resetValue() {
-            
+            this.searchInput = ''
+            this.optionvalue = ''
+            this.slectTime = ''
+            this.processingTime = ''
         },
         // 搜索确认
         confirmSearch() {
@@ -317,6 +397,46 @@ export default {
             console.log(startTime)
             console.log(endTime)
             console.log(this.processingTime)
+        },
+        //第一个搜索
+        search() {
+            // if (!this.selectValue) {
+            //     this.$message({
+            //         message: '请选择搜索类型 !',
+            //         type: 'warning'
+            //     });
+            //     return false
+            // }
+            // if (!this.searchInput) {
+            //     this.$message({
+            //         message: '请输入搜索内容 !',
+            //         type: 'warning'
+            //     });
+            //     return false
+            // }
+            this.curSelectType = this.selectValue || 1
+            if (this.selectValue == 1 ||  this.curSelectType == 1) {
+                setTimeout(()=> {
+                    for(let j = 0; j < this.lineChartsData.length ; j++) {
+                        this.lineCharts(this.lineChartsData[j])
+                    }
+                },500)
+                this.curTotalTablesHeader = corls.totalTablesHeader2
+                this.curTotalTableData = corls.totalTableData2
+                this.pagination = {
+                    page: 1,
+                    limit: 10,
+                    total: 50,
+                }
+            } else if (this.selectValue == 2) {
+                this.curTotalTablesHeader = corls.totalTablesHeader
+                this.curTotalTableData = corls.totalTableData
+                this.pagination = {
+                    page: 1,
+                    limit: 10,
+                    total: 30,
+                }
+            }
         },
     //     getFruitAllData() {
     //        let data = {
@@ -352,7 +472,6 @@ export default {
             let chartDom = document.getElementById(dataList.id);
             let myChart = echarts.init(chartDom);
             let option = {
-                symbolSize:10,//拐点大小
                 title: {
                     // text: '江门市蓬江区芝山五金工艺制品有限公司产值估计'
                 },
@@ -411,8 +530,8 @@ export default {
                     {
                         name: '南宁海关预警信息数量',
                         type: 'line',
-                        symbol:'circle',
-                        // color: '#5B8FF9',
+                        symbolSize: 8,// 拐点大小
+                        symbol: 'circle',// 拐点形状
                         color: dataList.color,
                         areaStyle: {
                             normal: {
@@ -434,6 +553,22 @@ export default {
                                 },
                             }
                         },
+                        itemStyle: {
+                            normal: {
+                                color: dataList.color,
+                                borderColor:'#fff',//拐点边框颜色
+                                borderWidth:2,//拐点边框大小
+                                lineStyle: {
+                                    color: dataList.color
+                                }
+                            },
+                            // 鼠标悬浮拐点样式修改
+                            emphasis:{
+                                color: dataList.color,
+                                borderColor: '#fff',
+                                borderWidth: 4,
+                            }
+                        },
                         // data: [800, 700, 600, 500, 400, 330, 300, 280],
                         data: dataList.data.data,
                     }
@@ -442,7 +577,7 @@ export default {
             option && myChart.setOption(option)
             window.addEventListener("resize", function () {
                 myChart.resize()
-            });
+            }); 
         },
         
         //  预警信息量排名
@@ -512,33 +647,101 @@ export default {
                 },
                 series: [
                     {
+                        symbolSize: 8,// 拐点大小
+                        symbol: 'circle',// 拐点形状
+                        itemStyle: {
+                            normal: {
+                                color: '#5B8FF9',
+                                borderColor:'#fff',//拐点边框颜色
+                                borderWidth:2,//拐点边框大小
+                                lineStyle: {
+                                    color: '#5B8FF9'
+                                }
+                            },
+                            // 鼠标悬浮拐点样式修改
+                            emphasis:{
+                                color: '#5B8FF9',
+                                borderColor: '#fff',
+                                borderWidth: 4,
+                            }
+                        },
                         name: '类别一',
                         type: 'line',
-                        symbol:'circle',
                         color: '#5B8FF9',
                         // data: [600, 700, 100, 500, 200, 300, 100, 100, 500],
                         data: this.warningQuantitySort.data[0]
                     },
                     {
+                        symbolSize: 8,// 拐点大小
+                        symbol: 'circle',// 拐点形状
+                        itemStyle: {
+                            normal: {
+                                color: '#40A9FF',
+                                borderColor:'#fff',//拐点边框颜色
+                                borderWidth:2,//拐点边框大小
+                                lineStyle: {
+                                    color: '#40A9FF'
+                                }
+                            },
+                            // 鼠标悬浮拐点样式修改
+                            emphasis:{
+                                color: '#40A9FF',
+                                borderColor: '#fff',
+                                borderWidth: 4,
+                            }
+                        },
                         name: '类别二',
                         type: 'line',
-                        symbol:'circle',
-                        color: '#40A9FF ',
+                        color: '#40A9FF',
                         // data: [300, 600, 300, 500, 500, 380, 330, 600, 300],
                         data: this.warningQuantitySort.data[1]
                     },
                     {
+                        symbolSize: 8,// 拐点大小
+                        symbol: 'circle',// 拐点形状
+                        itemStyle: {
+                            normal: {
+                                color: '#FFC53D',
+                                borderColor:'#fff',//拐点边框颜色
+                                borderWidth:2,//拐点边框大小
+                                lineStyle: {
+                                    color: '#FFC53D'
+                                }
+                            },
+                            // 鼠标悬浮拐点样式修改
+                            emphasis:{
+                                color: '#FFC53D',
+                                borderColor: '#fff',
+                                borderWidth: 4,
+                            }
+                        },
                         name: '类别三',
                         type: 'line',
-                        symbol:'circle',
                         color: '#FFC53D',
                         // data: [400, 600, 300, 200, 400, 310, 456, 600, 200],
                         data: this.warningQuantitySort.data[2],
                     },
                     {
+                        symbolSize: 8,// 拐点大小
+                        symbol: 'circle',// 拐点形状
+                        itemStyle: {
+                            normal: {
+                                color: '#5AD8A6',
+                                borderColor:'#fff',//拐点边框颜色
+                                borderWidth:2,//拐点边框大小
+                                lineStyle: {
+                                    color: '#5AD8A6'
+                                }
+                            },
+                            // 鼠标悬浮拐点样式修改
+                            emphasis:{
+                                color: '#5AD8A6',
+                                borderColor: '#fff',
+                                borderWidth: 4,
+                            }
+                        },
                         name: '类别四',
                         type: 'line',
-                        symbol:'circle',
                         color: '#5AD8A6',
                         // data: [700, 100, 800, 800, 400, 390, 555, 600, 333],
                         data: this.warningQuantitySort.data[3],
@@ -618,9 +821,26 @@ export default {
                 },
                 series: [
                     {
+                        symbolSize: 8,// 拐点大小
+                        symbol: 'circle',// 拐点形状
+                        itemStyle: {
+                            normal: {
+                                color: '#00DAFF',
+                                borderColor:'#fff',//拐点边框颜色
+                                borderWidth:2,//拐点边框大小
+                                lineStyle: {
+                                    color: '#00DAFF'
+                                }
+                            },
+                            // 鼠标悬浮拐点样式修改
+                            emphasis:{
+                                color: '#00DAFF',
+                                borderColor: '#fff',
+                                borderWidth: 4,
+                            }
+                        },
                         name: '预警开始时间',
                         type: 'line',
-                        symbol:'circle',
                         color: '#00DAFF',
                         areaStyle: {
                             normal: {
@@ -646,9 +866,26 @@ export default {
                         data: this.warningQuantity.data.startData,
                     },
                     {
+                        symbolSize: 8,// 拐点大小
+                        symbol: 'circle',// 拐点形状
+                        itemStyle: {
+                            normal: {
+                                color: '#FDCA15',
+                                borderColor:'#fff',//拐点边框颜色
+                                borderWidth:2,//拐点边框大小
+                                lineStyle: {
+                                    color: '#FDCA15'
+                                }
+                            },
+                            // 鼠标悬浮拐点样式修改
+                            emphasis:{
+                                color: '#FDCA15',
+                                borderColor: '#fff',
+                                borderWidth: 4,
+                            }
+                        },
                         name: '预警结束时间',
                         type: 'line',
-                        symbol:'circle',
                         color: '#FDCA15',
                         areaStyle: {
                             normal: {
@@ -770,7 +1007,156 @@ export default {
                 myChart.resize()
             });
         },
-                
+        // 选择option
+        changeChartsOption() {
+            let options;
+            // 饼图
+            let option1 = {
+                title: {
+                    text: '某站点用户访问来源',
+                    subtext: '纯属虚构',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'item'
+                },
+                legend: {
+                    orient: 'vertical',
+                    right: 10,
+                    top: 20,
+                    bottom: 20,
+                },
+                series: [
+                    {
+                        name: '访问来源',
+                        type: 'pie',
+                        radius: '50%',
+                        data: [
+                            {value: 1048, name: '关税处'},
+                            {value: 735, name: '综合业务处'},
+                            {value: 580, name: '口岸监管处'},
+                            {value: 484, name: '统计分析处'},
+                        ],
+                        emphasis: {
+                            itemStyle: {
+                                shadowBlur: 10,
+                                shadowOffsetX: 0,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            }
+                        }
+                    }
+                ]
+            };
+            // 横向柱状图
+            let option2 =   {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'value',
+                    boundaryGap: [0, 0.01]
+                },
+                yAxis: {
+                    type: 'category',
+                    data: ['桂林海关', '河池海关', '柳州海关', '玉林海关', '北海海关', '永口海关']
+                },
+                series: [
+                    {
+                        name: '2011年',
+                        type: 'bar',
+                        color: '#5B8FF9',
+                        data: [1.48, 2.34, 2.90, 1.04, 13.44, 6.30],
+                        label: {
+                            show: true,
+                            position: 'right'
+                        },
+                    },
+                ]
+            };
+            // 没有x分割线的折线图
+            let option3 = {
+                xAxis: {
+                    type: 'category',
+                    data: ['202101', '202102', '202103', '202104', '202105', '202106', '202107']
+                },
+                yAxis: {
+                    type: 'value',
+                    splitLine: {
+                        show: false
+                    }
+                },
+                series: [{
+                    color: 'red',
+                    symbolSize: 0,
+                    data: [150, 230, 224, 218, 135, 147, 260],
+                    type: 'line'
+                }]
+            };
+            // 纵向柱状图
+            let option4 = {
+                xAxis: {
+                    type: 'category',
+                    data: ['监察室', '商品检验处', '卫生检疫处',
+                    '企业管理和稽查处', '监督内审处', '综合业务处','动植物和视频检验检疫处','关税处','风险防控分局','统计分析处'
+                    ],
+                    axisLabel: {
+                        interval: 0, // 强制文字产生间隔
+                        rotate: 45,
+                        textStyle: {
+                            color: '#A0A2AB',
+                        }
+                    },
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [{
+                    data: [120, 200, 150, 80, 70, 110, 130,120,130,150],
+                    type: 'bar',
+                    color:new echarts.graphic.LinearGradient(
+                                            0, 0, 0, 1,
+                                            [
+                                                {offset: 0, color: '#5B8FF9'},
+                                                {offset: 1, color: 'rgba(41, 114, 255, 1)'}
+                                            ]
+                                    ),
+                    label: {
+                        show: true,
+                        position: 'top'
+                    },
+                }]
+            };
+            // 有x分割线的折线图
+            let option5 = {
+                xAxis: {
+                    type: 'category',
+                    data: ['202101', '202102', '202103', '202104', '202105', '202106', '202107']
+                },
+                yAxis: {
+                    type: 'value',
+                },
+                series: [{
+                    color: 'red',
+                    symbolSize: 0,
+                        data: [150, 230, 224, 218, 135, 147, 260],
+                    type: 'line',
+                    label: {
+                        show: true,
+                        position: 'top'
+                    },
+                }]
+            };
+            console.log(options,option1,option2,option3,option4,option5)
+        }
     }
 }
 </script>
@@ -778,6 +1164,9 @@ export default {
 <style lang="scss" scoped>
    
     /deep/{
+        .el-select .el-input {
+            width: 130px;
+        }
         .el-table {
             .row-class {
                 background: rgba(243,245,252,1);
@@ -801,6 +1190,30 @@ export default {
         }
         .el-input-group>.el-input__inner {
             border-right: 0;
+        }
+        .el-input__prefix {
+            left: unset;
+            right: 5px ;
+        }
+        .el-input--prefix .el-input__inner  {
+            padding-left: 15px;
+        }
+        .el-pagination.is-background .el-pager li:not(.disabled).active {
+           background: none; 
+           color: #409EFF;
+        }
+        .el-pagination.is-background .el-pager li {
+            background: none;
+        }
+        .el-pager li {
+            border: 1px solid #DCDFE6;
+        }
+        .el-pager li.active {
+            border-color: #409EFF;
+        }
+        .el-pagination.is-background .btn-next, .el-pagination.is-background .btn-prev {
+            background: none;
+            border: 1px solid #DCDFE6;
         }
     }
     .subtitle {
@@ -949,9 +1362,13 @@ export default {
                 padding: 20px 10px;
                 box-sizing: border-box;
             }
+            .charts-div {
+                height: 33.3%;
+                width: 100%;
+            }
             .charts {
                 width: 100%;
-                height: 300px;
+                height: 85%;
             }
         }
     }

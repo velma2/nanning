@@ -78,6 +78,52 @@ export default {
             label: '备注',
         },
     ],
+    totalTablesHeader2: [
+        {
+            prop: 'warningNum',
+            label: '预警单号',
+        },
+        {
+            prop: 'indexCode',
+            label: '指标编码',
+        },
+        {
+            prop: 'offZone',
+            label: '关区',
+            width: '100'
+        },
+        {
+            prop: 'department',
+            label: '职能处室',
+            width: '130'
+        },
+        {
+            prop: 'content',
+            label: '预警内容',
+            width: '120'
+        },
+        {
+            prop: 'startTime',
+            label: '预警开始时间',
+            sortable: true,
+            width: '90'
+        },
+        {
+            prop: 'endTime',
+            label: '预警结束时间',
+            sortable: true,
+            width: '90'
+        },
+        {
+            prop: 'hours',
+            label: '半节时长(单位: 小时)',
+            sortable: true,
+        },
+        {
+            prop: 'status',
+            label: '状态',
+        },
+    ],
     tableData: [
         {
             department: '防城海关',
@@ -207,6 +253,63 @@ export default {
             timeOut: 11,
             hours: '-',
             remark: '-'
+        },
+    ],
+    totalTableData2: [
+        {
+            warningNum: 'Y321053100049463', 
+            indexCode: '-',
+            offZone: '北海海关',
+            department: '关税处',
+            content: '-', 
+            startTime: 20210515, 
+            endTime: 20210523, 
+            hours: 192, 
+            status: '处置中'
+        },
+        {
+            warningNum: 'Y321053100049472', 
+            indexCode: '-',
+            offZone: '北海海关',
+            department: '综合业务处',
+            content: '-', 
+            startTime: 20210515, 
+            endTime: 20210523, 
+            hours: 192, 
+            status: '处置中'
+        },
+        {
+            warningNum: 'Y321053100049487', 
+            indexCode: '-',
+            offZone: '北海海关',
+            department: '口岸监管处',
+            content: '-', 
+            startTime: 20210515, 
+            endTime: 20210523, 
+            hours: 192, 
+            status: '处置中'
+        },
+        {
+            warningNum: 'Y321053100049466', 
+            indexCode: '-',
+            offZone: '北海海关',
+            department: '动植物和食品检验检疫处',
+            content: '-', 
+            startTime: 20210515, 
+            endTime: 20210523, 
+            hours: 192, 
+            status: '处置中'
+        },
+        {
+            warningNum: 'Y321053100049456', 
+            indexCode: '-',
+            offZone: '北海海关',
+            department: '风险防控分局',
+            content: '-', 
+            startTime: 20210515, 
+            endTime: 20210523, 
+            hours: 192, 
+            status: '处置中'
         },
     ],
     options: [{
