@@ -261,6 +261,7 @@ export default {
                 total: 30,
             },
             curShowChartsData: [],
+            // 默认展示的图
             lineChartsData: [
                 {
                     id: 'line-chart1',
@@ -287,64 +288,77 @@ export default {
                     },
                 }
             ],
-            lineChartsData2:  [
+            // 隶属海关分类的图
+            lineChartsData2: [
                 {
                     id: 'line-chart1',
                     color: '#5B8FF9',
-                    data :  [
-                        {value: 1048, name: '关税处'},
-                        {value: 735, name: '综合业务处'},
-                        {value: 580, name: '口岸监管处'},
-                        {value: 484, name: '统计分析处'},
-                    ],
+                    data: {
+                        data:  [
+                            {value: 1048, name: '防城海关'},
+                            {value: 735, name: '桂林海关'},
+                            {value: 580, name: '梧州海关'},
+                            {value: 484, name: '玉林海关'},
+                            {value: 300, name: '柳州海关'},
+                            {value: 300, name: '北海海关'},
+                            {value: 300, name: '邕邮海关'},
+                        ]
+                    }
                 },
                 {
                     id: 'line-chart2',
                     color: '#FFC53D',
                     data : {
-                        date:  ['监察室', '商品检验处', '卫生检疫处',
-        '企业管理和稽查处', '监督内审处', '综合业务处','动植物和视频检验检疫处','关税处','风险防控分局','统计分析处'
-        ],
-                        data: [120, 200, 150, 80, 70, 110, 130,120,130,150]
+                        date: ['桂林海关', '河池海关', '柳州海关', '玉林海关', '北海海关', '永口海关'],
+                        data: [0, 2.34, 2.90, 1.04, 13.44, 6.30]
                     },
                 },
                 {
                     id: 'line-chart3',
                     color: '#69C0FF',
                     data : {
-                        date: ['202101', '202102', '202103', '202104', '202105', '202106', '202107'],
-                        data: [150, 230, 224, 218, 135, 147, 260]
+                        date: ['202001', '202002','202003','202004','202005','202006','202007' ],
+                        data: [800, 700, 600, 500, 400, 330, 300, 280]
                     },
                 }
             ],
+            // 预警处理分类的图
             lineChartsData3: [
                 {
                     id: 'line-chart1',
                     color: '#5B8FF9',
-                    data :  [
-                        {value: 1048, name: '关税处'},
-                        {value: 735, name: '综合业务处'},
-                        {value: 580, name: '口岸监管处'},
-                        {value: 484, name: '统计分析处'},
-                    ],
+                    data: {
+                        data: [
+                            {value: 1048, name: '关税处'},
+                            {value: 735, name: '综合业务处'},
+                            {value: 580, name: '口岸监管处'},
+                            {value: 484, name: '风险防控分局'},
+                            {value: 300, name: '监察室'},
+                            {value: 300, name: '统计分析处'},
+                            {value: 300, name: '监督内审处'},
+                        ]
+                    }
                 },
                 {
                     id: 'line-chart2',
                     color: '#FFC53D',
                     data : {
-                        date:  [1.48, 2.34, 2.90, 1.04, 13.44, 6.30],
-                        data: ['桂林海关', '河池海关', '柳州海关', '玉林海关', '北海海关', '永口海关']
+                        date: ['监察室', '商品检验处', '卫生检疫处',
+                    '企业管理和稽查处', '监督内审处', '综合业务处','动植物和视频检验检疫处','关税处','风险防控分局','统计分析处'
+                    ],
+                        data: [120, 0, 150, 80, 70, 110, 130,120,130,150]
                     },
                 },
                 {
                     id: 'line-chart3',
-                    color: '#69C0FF',
+                    color: '#5B8FF9',
                     data : {
-                        date: ['202101', '202102', '202103', '202104', '202105', '202106', '202107'],
-                        data: [150, 230, 224, 218, 135, 147, 260]
+                        date: ['202001', '202002','202003','202004','202005','202006','202007' ],
+                        data: [800, 700, 600, 500, 400, 330, 300, 280]
                     },
                 }
             ],
+            chartsIdList: ['line-chart1','line-chart2','line-chart3'],
             warningQuantitySort: {
                 date:['6:00','8:00','10:00','12:00','14:00','16:00','18:00','20:00','22:00'],
                 data:[
@@ -372,7 +386,7 @@ export default {
     mounted() {
         this.curShowChartsData = this.lineChartsData
         for(let j = 0; j < this.curShowChartsData.length ; j++) {
-            this.lineCharts(this.curShowChartsData[j])
+            this.lineCharts(j,this.curShowChartsData[j],1)
         }
         this.lineCharts4()
         this.lineCharts5()
@@ -468,112 +482,29 @@ export default {
             }
         },
         //  南宁海关预警信息数量
-        lineCharts(dataList) {
+        lineCharts(index,dataList,type) {
             let chartDom = document.getElementById(dataList.id);
             let myChart = echarts.init(chartDom);
-            let option = {
-                title: {
-                    // text: '江门市蓬江区芝山五金工艺制品有限公司产值估计'
-                },
-                tooltip: {
-                    trigger: 'axis'
-                },
-                grid: {
-                    left: '3%',
-                    right: '9%',
-                    bottom: '7%',
-                    top: '8%',
-                    containLabel: true
-                },
-                xAxis: {    
-                    type: 'category',
-                    axisTick: {
-                        show: false
-                    },
-                    boundaryGap: false,
-                    axisLabel: {  
-                        interval:0,  
-                        rotate:-15 ,
-                        textStyle: {
-                            color: 'rgba(0,0,0,0.5)',
-                        } 
-                    }, 
-                    axisLine: {
-                        lineStyle: {
-                            color: 'rgba(0,0,0,0.05)',
-                        }
-                    },
-                    // data: ['202001', '202002','202003','202004','202005','202006','202007' ]
-                    data: dataList.data.date
-                },
-                yAxis: {
-                    type: 'value',
-                    max: function(value) {
-                        return value.max + 400
-                    },
-                    axisLine: {show:false},
-                    axisTick: {show:false},
-                    axisLabel: {
-                        textStyle: {
-                            color: 'rgba(0,0,0,0.45)',
-                            fontSize: 14,
-                        }
-                    },
-                    splitLine: {
-                        show: true,
-                        lineStyle:{
-                            color: 'rgba(0,0,0,0.15)'
-                        }
-                    }
-                },
-                series: [
-                    {
-                        name: '南宁海关预警信息数量',
-                        type: 'line',
-                        symbolSize: 8,// 拐点大小
-                        symbol: 'circle',// 拐点形状
-                        color: dataList.color,
-                        areaStyle: {
-                            normal: {
-                                color: {
-                                    type: 'linear',
-                                    x0: 0,
-                                    y0: 0,
-                                    x2: 0,
-                                    y2: 1,
-                                    colorStops: [{
-                                        offset: 0,
-                                        // color: '#5B8FF9',
-                                        color: dataList.color,
-                                    }, {
-                                        offset: 1,
-                                        color: 'white',
-                                    }],
-                                    globalCoord: false
-                                },
-                            }
-                        },
-                        itemStyle: {
-                            normal: {
-                                color: dataList.color,
-                                borderColor:'#fff',//拐点边框颜色
-                                borderWidth:2,//拐点边框大小
-                                lineStyle: {
-                                    color: dataList.color
-                                }
-                            },
-                            // 鼠标悬浮拐点样式修改
-                            emphasis:{
-                                color: dataList.color,
-                                borderColor: '#fff',
-                                borderWidth: 4,
-                            }
-                        },
-                        // data: [800, 700, 600, 500, 400, 330, 300, 280],
-                        data: dataList.data.data,
-                    }
-                ]
-            };
+            let option;
+            if (type == 1) {
+                 option = this.changeChartsOption(4,dataList)
+            } else if (type == 2) {
+                if (index == 0) {
+                    option = this.changeChartsOption(1,dataList)
+                } else if (index == 1) {
+                    option = this.changeChartsOption(2,dataList)
+                }else if (index == 2) {
+                    option = this.changeChartsOption(4,dataList)
+                }
+            } else if (type == 3) {
+                if (index == 0) {
+                    option = this.changeChartsOption(1,dataList)
+                } else if (index == 1) {
+                    option = this.changeChartsOption(3,dataList)
+                }else if (index == 2) {
+                    option = this.changeChartsOption(4,dataList)
+                }
+            }
             option && myChart.setOption(option)
             window.addEventListener("resize", function () {
                 myChart.resize()
@@ -1008,154 +939,265 @@ export default {
             });
         },
         // 选择option
-        changeChartsOption() {
+        changeChartsOption(type,dataList) {
             let options;
-            // 饼图
-            let option1 = {
-                title: {
-                    text: '某站点用户访问来源',
-                    subtext: '纯属虚构',
-                    left: 'center'
-                },
-                tooltip: {
-                    trigger: 'item'
-                },
-                legend: {
-                    orient: 'vertical',
-                    right: 10,
-                    top: 20,
-                    bottom: 20,
-                },
-                series: [
-                    {
-                        name: '访问来源',
-                        type: 'pie',
-                        radius: '50%',
-                        data: [
-                            {value: 1048, name: '关税处'},
-                            {value: 735, name: '综合业务处'},
-                            {value: 580, name: '口岸监管处'},
-                            {value: 484, name: '统计分析处'},
-                        ],
-                        emphasis: {
-                            itemStyle: {
-                                shadowBlur: 10,
-                                shadowOffsetX: 0,
-                                shadowColor: 'rgba(0, 0, 0, 0.5)'
-                            }
+            if (type == 1) {
+                // 饼图
+                options = {
+                    tooltip: {
+                        trigger: 'item'
+                    },
+                    legend: {
+                        bottom: '0%',
+                        left: 'center',
+                        textStyle: {
+                            color: 'rgba(0,0,0,0.45)'
                         }
-                    }
-                ]
-            };
-            // 横向柱状图
-            let option2 =   {
-                tooltip: {
-                    trigger: 'axis',
-                    axisPointer: {
-                        type: 'shadow'
-                    }
-                },
-                grid: {
-                    left: '3%',
-                    right: '4%',
-                    bottom: '3%',
-                    containLabel: true
-                },
-                xAxis: {
-                    type: 'value',
-                    boundaryGap: [0, 0.01]
-                },
-                yAxis: {
-                    type: 'category',
-                    data: ['桂林海关', '河池海关', '柳州海关', '玉林海关', '北海海关', '永口海关']
-                },
-                series: [
-                    {
-                        name: '2011年',
-                        type: 'bar',
-                        color: '#5B8FF9',
-                        data: [1.48, 2.34, 2.90, 1.04, 13.44, 6.30],
-                        label: {
-                            show: true,
-                            position: 'right'
+                    },
+                    series: [
+                        {
+                            name: '访问来源',
+                            center: ["50%", "35%"], 
+                            type: 'pie',
+                            radius: ['30%', '50%'],
+                            color: ['#5B8FF9','#9270CA','#6DC8EC','#F6C3B7','#FBE5A2','#F6BD16','#436CB6',
+                            '#BDEFDB','#BDD2FD','#246CFF','#269A99','#E37C27','#6DC8EC','#BD2906','#5D7092',
+                            '#5AD8A6','#B6E3F5','#1546AA','#E8684A','#40A9FF','#C2C8D5','#D2A00D','#5AD8A6'],
+                            avoidLabelOverlap: false,
+                            label: {
+                                show: false,
+                                position: 'center'
+                            },
+                            emphasis: {
+                                label: {
+                                    show: true,
+                                    fontSize: '16',
+                                    fontWeight: 'bold'
+                                }
+                            },
+                            labelLine: {
+                                show: false
+                            },
+                            // data: [
+                            //     {value: 1048, name: '搜索引擎'},
+                            //     {value: 735, name: '直接访问'},
+                            //     {value: 580, name: '邮件营销'},
+                            //     {value: 484, name: '联盟广告'},
+                            //     {value: 300, name: '视频广告'},
+                            // ]
+                            data: dataList.data.data
+                        }
+                    ]
+                };
+            } else if (type == 2) {
+                // 横向柱状图
+                options = {
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'shadow'
+                        }
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'value',
+                        boundaryGap: [0, 0.01],
+                        axisLine: {show:false},
+                        axisTick: {show:false},
+                        axisLabel: {  
+                            textStyle: {
+                                color: 'rgba(0,0,0,0.45)',
+                            } 
+                        }, 
+                    },
+                    yAxis: {
+                        axisLine: {show:false},
+                        axisTick: {show:false},
+                        axisLabel: {
+                            textStyle: {
+                                color: 'rgba(0,0,0,0.45)',
+                                fontSize: 14,
+                            }
+                        },
+                        type: 'category',
+                        // data: ['桂林海关', '河池海关', '柳州海关', '玉林海关', '北海海关', '永口海关']
+                        data: dataList.data.date
+                    },
+                    series: [
+                        {
+                            name: '2011年',
+                            type: 'bar',
+                            color: '#5AD8A6',
+                            // data: [0, 2.34, 2.90, 1.04, 13.44, 6.30],
+                            data: dataList.data.data,
+                            label: {
+                                show: true,
+                                position: 'right'
+                            },
+                        },
+                    ]
+                };
+            } else if (type == 3) {
+                // 纵向柱状图
+                options = {
+                    xAxis: {
+                        type: 'category',
+                        // data: ['监察室', '商品检验处', '卫生检疫处',
+                        // '企业管理和稽查处', '监督内审处', '综合业务处','动植物和视频检验检疫处','关税处','风险防控分局','统计分析处'
+                        // ],
+                        data: dataList.data.date,
+                        axisTick: {show:false},
+                        axisLine: {
+                            lineStyle: {
+                                color: 'rgba(0,0,0,0.5)',
+                            }   
+                        },
+                        axisLabel: {
+                            interval: 0, // 强制文字产生间隔
+                            rotate: -20,
                         },
                     },
-                ]
-            };
-            // 没有x分割线的折线图
-            let option3 = {
-                xAxis: {
-                    type: 'category',
-                    data: ['202101', '202102', '202103', '202104', '202105', '202106', '202107']
-                },
-                yAxis: {
-                    type: 'value',
-                    splitLine: {
-                        show: false
-                    }
-                },
-                series: [{
-                    color: 'red',
-                    symbolSize: 0,
-                    data: [150, 230, 224, 218, 135, 147, 260],
-                    type: 'line'
-                }]
-            };
-            // 纵向柱状图
-            let option4 = {
-                xAxis: {
-                    type: 'category',
-                    data: ['监察室', '商品检验处', '卫生检疫处',
-                    '企业管理和稽查处', '监督内审处', '综合业务处','动植物和视频检验检疫处','关税处','风险防控分局','统计分析处'
-                    ],
-                    axisLabel: {
-                        interval: 0, // 强制文字产生间隔
-                        rotate: 45,
-                        textStyle: {
-                            color: '#A0A2AB',
+                    yAxis: {
+                        axisLine: {show:false},
+                        axisTick: {show:false},
+                        type: 'value',
+                        max: function(value) {
+                            return value.max + 200
+                        },
+                        axisLabel: {
+                            textStyle: {
+                                color: 'rgba(0,0,0,0.45)',
+                                fontSize: 14,
+                            }
+                        },
+                    },
+                    series: [{
+                        // data: [120, 0, 150, 80, 70, 110, 130,120,130,150],
+                        data: dataList.data.data,
+                        type: 'bar',
+                        color: '#F6BD16',
+                        label: {
+                            show: true,
+                            position: 'top'
+                        },
+                    }]
+                };
+            } else if (type == 4) {
+                // 折线图
+                options = {
+                    title: {
+                        // text: '江门市蓬江区芝山五金工艺制品有限公司产值估计'
+                    },
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '9%',
+                        bottom: '7%',
+                        top: '8%',
+                        containLabel: true
+                    },
+                    xAxis: {    
+                        type: 'category',
+                        axisTick: {
+                            show: false
+                        },
+                        boundaryGap: false,
+                        axisLabel: {  
+                            interval:0,  
+                            rotate:-15 ,
+                            textStyle: {
+                                color: 'rgba(0,0,0,0.5)',
+                            } 
+                        }, 
+                        axisLine: {
+                            lineStyle: {
+                                color: 'rgba(0,0,0,0.05)',
+                            }
+                        },
+                        // data: ['202001', '202002','202003','202004','202005','202006','202007' ]
+                        data: dataList.data.date
+                    },
+                    yAxis: {
+                        type: 'value',
+                        max: function(value) {
+                            return value.max + 400
+                        },
+                        axisLine: {show:false},
+                        axisTick: {show:false},
+                        axisLabel: {
+                            textStyle: {
+                                color: 'rgba(0,0,0,0.45)',
+                                fontSize: 14,
+                            }
+                        },
+                        splitLine: {
+                            show: true,
+                            lineStyle:{
+                                color: 'rgba(0,0,0,0.15)'
+                            }
                         }
                     },
-                },
-                yAxis: {
-                    type: 'value'
-                },
-                series: [{
-                    data: [120, 200, 150, 80, 70, 110, 130,120,130,150],
-                    type: 'bar',
-                    color:new echarts.graphic.LinearGradient(
-                                            0, 0, 0, 1,
-                                            [
-                                                {offset: 0, color: '#5B8FF9'},
-                                                {offset: 1, color: 'rgba(41, 114, 255, 1)'}
-                                            ]
-                                    ),
-                    label: {
-                        show: true,
-                        position: 'top'
-                    },
-                }]
-            };
-            // 有x分割线的折线图
-            let option5 = {
-                xAxis: {
-                    type: 'category',
-                    data: ['202101', '202102', '202103', '202104', '202105', '202106', '202107']
-                },
-                yAxis: {
-                    type: 'value',
-                },
-                series: [{
-                    color: 'red',
-                    symbolSize: 0,
-                        data: [150, 230, 224, 218, 135, 147, 260],
-                    type: 'line',
-                    label: {
-                        show: true,
-                        position: 'top'
-                    },
-                }]
-            };
-            console.log(options,option1,option2,option3,option4,option5)
+                    series: [
+                        {
+                            name: '南宁海关预警信息数量',
+                            type: 'line',
+                            symbolSize: 8,// 拐点大小
+                            symbol: 'circle',// 拐点形状
+                            // color: '#5B8FF9',
+                            color: dataList.color,
+                            areaStyle: {
+                                normal: {
+                                    color: {
+                                        type: 'linear',
+                                        x0: 0,
+                                        y0: 0,
+                                        x2: 0,
+                                        y2: 1,
+                                        colorStops: [{
+                                            offset: 0,
+                                            // color: '#5B8FF9',
+                                            color: dataList.color,
+                                        }, {
+                                            offset: 1,
+                                            color: 'white',
+                                        }],
+                                        globalCoord: false
+                                    },
+                                }
+                            },
+                            itemStyle: {
+                                normal: {
+                                    color: dataList.color,
+                                    // color: '#5B8FF9',
+                                    borderColor:'#fff',//拐点边框颜色
+                                    borderWidth:2,//拐点边框大小
+                                    lineStyle: {
+                                        // color: '#5B8FF9',
+                                        color: dataList.color
+                                    }
+                                },
+                                // 鼠标悬浮拐点样式修改
+                                emphasis:{
+                                    // color: '#5B8FF9',
+                                    color: dataList.color,
+                                    borderColor: '#fff',
+                                    borderWidth: 4,
+                                }
+                            },
+                            // data: [800, 700, 600, 500, 400, 330, 300, 280],
+                            data: dataList.data.data,
+                        }
+                    ]
+                };
+            }
+            return options
         }
     }
 }
