@@ -1,7 +1,7 @@
 export default {
     tablesHeader: [
         {
-            prop: 'department',
+            prop: 'customsName',
             label: '单位',
             sortable: true
             // width: '220'

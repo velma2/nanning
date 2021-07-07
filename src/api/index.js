@@ -1,8 +1,20 @@
 import request from '@/utils/httpRequest'
 
-export const getFruitAllData = (data) =>
+export const getTopFive = () =>
 request({
-    url: 'nncustoms/fruit/page',
+    url: 'customsTop',
+    method: 'get',
+    // params:data
+})
+export const getOrType = (data) =>
+request({
+    url: 'orgType',
+    method: 'get',
+    params:data
+})
+export const getPanoramaList = (data) =>
+request({
+    url: 'panorama_list',
     method: 'get',
     params:data
 })

@@ -209,7 +209,7 @@
 <script>
 import echarts from 'echarts'
 import corls from './components/corls'
-//  import { getFruitAllData} from '@/api/index'
+ import { getTopFive} from '@/api/index'
 export default {
     name: 'Index',
      data () {
@@ -252,8 +252,10 @@ export default {
             curTotalTablesHeader: corls.totalTablesHeader, // 当前展示的表格数据
             tablesHeader: corls.tablesHeader,
             totalTablesHeader: corls.totalTablesHeader,
-            tableData: corls.tableData,
-            subordinateData: corls.subordinateData,
+            // tableData: corls.tableData, // 职能部门数据
+            tableData: [], // 职能部门数据
+            subordinateData: [], // 隶属海关数据
+            // subordinateData: corls.subordinateData, // 隶属海关数据
             totalTableData: corls.totalTableData,
             pagination: {
                 page: 1,
@@ -380,7 +382,8 @@ export default {
             halfKnotDuration: {
                 date: [1,2,3,4,5,6,7,8,9,10,11,12],
                 data: [120, 132, 101, 134, 90, 230, 210,100,120,130,140,170]
-            }
+            },
+            rowList: null
         }
     },
     mounted() {
@@ -391,7 +394,8 @@ export default {
         this.lineCharts4()
         this.lineCharts5()
         this.lineCharts6()
-        // this.getFruitAllData()
+        // 获取本月预计信息量排行TOP5数据
+        this.getTopFiveData()
     },
     methods: {
         // 重置
@@ -452,17 +456,24 @@ export default {
                 }
             }
         },
-    //     getFruitAllData() {
-    //        let data = {
-    //         current:1,
-    //         pageSize:10
-    //        }
-    //        getFruitAllData(data).then((res) => {
-    //           console.log(res)
-    //         }).catch(err =>{
-    //             console.log(err)
-    //         })
-    //    },
+        getTopFiveData() {
+        //    let data = {
+        //     current:1,
+        //     pageSize:10
+        //    }
+           getTopFive().then((res) => {
+              let result = res.data.data
+              for(let i = 0; i < result.length ; i++) {
+                 if (result[i].type == 1) {
+                    this.subordinateData = result[i].customsTopDtos
+                 } else {
+                    this.tableData = result[i].customsTopDtos
+                 }
+                }
+            }).catch(err =>{
+                console.log(err)
+            })
+       },
         // 分页属性
         handleSizeChange (val) {
             this.limit = val
@@ -474,7 +485,7 @@ export default {
         },
         // 表格样式设置
         tableRowClassName({row, rowIndex}) {
-            console.log(row)
+            this.rowList = row
             if (rowIndex % 2 !== 0) {
                 return 'row-class';
             } else {
