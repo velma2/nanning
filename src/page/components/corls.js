@@ -313,37 +313,31 @@ export default {
         },
     ],
     options: [{
-        value: 'zhinan',
+        value: '2',
+        label: '职能部门'
+      }, {
+        value: '1',
+        label: '隶属海关'
+      }],
+    options2: [{
+        value: '2',
         label: '职能部门',
-        children: [{
-          value: 'shejiyuanze',
-          label: '关税处1',
-        }, {
-          value: 'daohang',
-          label: '综合业务处1',
-        }]
-      },
-      {
-        value: 'zhinan',
+        children: [
+            {
+                value: '3',
+                label: '税务部', 
+            }
+        ]
+    },
+    {
+        value: '1',
         label: '隶属海关',
-        children: [{
-            value: 'shejiyuanze',
-            label: '关税处2',
-          }, {
-            value: 'daohang',
-            label: '综合业务处2',
-          }]
-      },
-      {
-        value: 'zhinan',
-        label: '预警时间设置',
-        children: [{
-            value: 'shejiyuanze',
-            label: '关税处3',
-          }, {
-            value: 'daohang',
-            label: '综合业务处3',
-          }]
-      }
-    ]
+        children: [
+            {
+                value: '4',
+                label: '北海海关',
+            }
+        ]
+    },
+    ],
 }

@@ -12,28 +12,52 @@
             </div>
             <div class="content">
             <div class="search-options white-bg flex-row-sb">
-                <div class="flex-row search-option" style="width: 27%">
+                <div class="flex-row search-option" style="width: 15%">
                     <span class="title">搜索</span>
-                    <el-input placeholder="请输入内容" v-model="searchInput" class="input-with-select" clearable>
+                    <!-- <el-input placeholder="请输入内容" v-model="searchInput" class="input-with-select" clearable>
                         <el-select v-model="selectValue" slot="prepend" placeholder="请选择" clearable>
                         <el-option label="北海海关" value="1"></el-option>
                         <el-option label="检索预警单号" value="2"></el-option>
                         </el-select>
                         <el-button slot="append" icon="el-icon-search" @click="search"></el-button>
-                    </el-input>
-                    <!-- <el-input
+                    </el-input> -->
+                    <el-input
                         placeholder="请输入"
                         prefix-icon="el-icon-search"
                         v-model="searchInput">
-                    </el-input> -->
+                    </el-input>
                     <!-- <el-input placeholder="请输入" v-model="searchInput" class="input-with-select">
                         <el-button slot="append" icon="el-icon-search"></el-button>
                     </el-input> -->
                 </div>
-                <div class="flex-row search-option" style="width: 17%">
+                <div class="flex-row search-option" style="width: 28%">
                     <span class="title">组织机构</span>
-                    <el-cascader v-model="optionvalue" :options="options" filterable placeholder="请选择名称" clearable>
-                    </el-cascader>
+                    <el-select v-model="orgType" placeholder="请选择" @change="orgChange" clearable>
+                        <el-option
+                        v-for="item in options"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value">
+                        </el-option>
+                    </el-select>
+                    <el-select v-model="orgCodes" multiple collapse-tags placeholder="请选择" filterable clearable style="width:100%">
+                        <el-option
+                            v-for="item in orgOptions"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value">
+                        </el-option>
+                    </el-select>
+                    <!-- <el-cascader v-model="optionvalue" :options="options" filterable placeholder="请选择名称" clearable>
+                    </el-cascader> -->
+                </div>
+                <div class="flex-row search-option" style="width: 10%">
+                    <span class="title">预警时间设置</span>
+                    <el-switch
+                        v-model="timeSet"
+                        active-color="#00b8ff"
+                        inactive-color="#DCDFE6">
+                    </el-switch>
                 </div>
                 <div class="flex-row search-option" style="width: 23%">
                     <span class="title">时间</span>
@@ -48,7 +72,7 @@
                         :picker-options="pickerOptions">
                     </el-date-picker>
                 </div>
-                <div  class="flex-row search-option" style="width: 13%">
+                <div  class="flex-row search-option" style="width: 11%">
                     <span class="title">办理时长</span>
                     <el-input-number v-model="processingTime" controls-position="right" :min="1" :max="10" placeholder="请选择时间"></el-input-number>
                 </div>
@@ -108,7 +132,7 @@
                     </div>
                 </div>
             </div>
-            <div v-if="curSelectType == 1" class="data-show white-bg">
+            <div v-if="curSelectOrgType !==3" class="data-show white-bg">
                 <div class="content-desc flex">
                     <div class="data-show-chart" style="margin-right: .5%;">
                         <div class="subtitle flex-row">
@@ -171,7 +195,7 @@
                     </div>
                     <div class="data-echatrs white-bg">
                             
-                        <div class="charts-div">
+                        <div class="charts-div" v-if="curSelectOrgType !==3">
                             <div class="subtitle flex-row">
                                 <span class="title-line"></span>
                                 <span>预警信息量排名</span>
@@ -180,7 +204,7 @@
 
                             </div>
                         </div>
-                        <div class="charts-div">
+                        <div class="charts-div" v-if="curSelectOrgType !==1 && curSelectOrgType !==2">
                             <div class="subtitle flex-row">
                                 <span class="title-line"></span>
                                 <span>预警信息量</span>
@@ -209,16 +233,57 @@
 <script>
 import echarts from 'echarts'
 import corls from './components/corls'
- import { getTopFive} from '@/api/index'
+ import { getTopFive,getOrType,getStatusList,getTableList} from '@/api/index'
 export default {
     name: 'Index',
      data () {
         return {
+            timeSet: false,
+            searchData: {
+                name: '', // 搜索内容
+                orgType: '', // 组织机构类型 1职能部门 2隶属海关 3预警设置时间
+                orgCodes: '', // 组织机构类型的子分类
+                startTime: '', // 预警开始时间
+                endTime: '', // 预警结束时间
+                processingTime: '', // 办理时长
+                timeOrgType: '', // 当预警设置时间和组织机构同时选中的时候此时参数的值为组织机构的类型
+                current: 1, // 当前页码
+                size: 10, // 每页显示的条数
+            },
             searchInput: '', // 搜索框的值
-            options: corls.options,
+            timeOrgType: '',
+            options2: [{
+                    value: '2',
+                    label: '职能部门',
+                    children: []
+                },
+                {
+                    value: '1',
+                    label: '隶属海关',
+                    children: []
+                },
+            ],
+            orgList: {
+                haiguan: [],
+                zhineng: []
+            },
+            orgOptions:[],
+            options: [
+                {
+                    value: '2',
+                    label: '职能部门',
+                },
+                {
+                    value: '1',
+                    label: '隶属海关',
+                },
+            ],
             selectValue: '', // 搜索选择的类型值
-            optionvalue: '', // 组织机构选中的值
+            orgType: '', // 组织机构选中的值
+            curSelectOrgType: 0,
+            orgCodes:'', // 组织机构下面的分支
             curSelectType: 1, // 记录搜索选择的类型来判断中间三个折线图是否隐藏
+            statusList: [], // 预警状态类型
             pickerOptions: {
                 shortcuts: [{
                     text: '最近一周',
@@ -387,6 +452,9 @@ export default {
         }
     },
     mounted() {
+        // 获取预警类型
+        this.getStatus()
+
         this.curShowChartsData = this.lineChartsData
         for(let j = 0; j < this.curShowChartsData.length ; j++) {
             this.lineCharts(j,this.curShowChartsData[j],1)
@@ -396,25 +464,139 @@ export default {
         this.lineCharts6()
         // 获取本月预计信息量排行TOP5数据
         this.getTopFiveData()
+
+        // 获取组织机构的对应的部门
+        let typeList = [1,2]
+        for(let i = 0; i < typeList.length ; i++) {
+            this.getOrType(typeList[i])
+        }
+        console.log(this.slectTime)
+        this.getTableList()
     },
     methods: {
+        // 获取列表
+        getTableList() {
+            this.updateSearchData()
+            getTableList(this.searchData).then((res)=> {
+                let result = res.data.data
+                if (this.timeSet) {
+                    this.curTotalTablesHeader = corls.totalTablesHeader
+                } else if (this.orgType == 1 || this.orgType == 2) {
+                    this.curTotalTablesHeader = corls.totalTablesHeader2
+                }
+                this.curTotalTableData = result.records
+                this.pagination.size =  result.size
+                this.pagination.page = result.current
+                this.pagination.total = result.total 
+            }).catch((err)=> {
+                console.log(err)
+            })
+        },
+        // 获取预警状态
+        getStatus() {
+            getStatusList().then((res)=> {
+                this.statusList = res.data.data
+                console.log(this.statusList)
+            }).catch((err)=> {
+                console.log(err)
+            })
+        },
+        // 获取组织机构的对应的部门
+        getOrType(type) {
+            let data = {type:type}
+            getOrType(data).then((res) => {
+               let result = res.data.data
+               if (result.length > 0) {
+                   for(let i = 0; i < result.length ; i++) {
+                        let object = {}
+                        object.value = result[i].orgCode
+                        object.label = result[i].orgName
+                        if (type == 1) {
+                            this.orgList.haiguan.push(object)
+                        } else {
+                            this.orgList.zhineng.push(object)
+                        }
+                    }
+               }
+               
+            }).catch(err =>{
+                console.log(err)
+            })
+        },
+        // 组织机构的选中
+        orgChange(val) {
+            console.log(val)
+            if (val == 1) {
+                this.orgCodes = ''
+                this.orgOptions = this.orgList.haiguan
+            } else if (val == 2) {
+                this.orgCodes = ''
+                this.orgOptions = this.orgList.zhineng
+            } else if (!val) {
+                this.orgOptions = []
+                this.orgCodes = ''
+            }
+        },
         // 重置
         resetValue() {
             this.searchInput = ''
-            this.optionvalue = ''
+            this.orgType = ''
+            this.orgCodes = ''
+            this.timeSet = false
             this.slectTime = ''
             this.processingTime = ''
         },
         // 搜索确认
         confirmSearch() {
-            console.log(this.searchInput)
-            console.log(this.optionvalue)
-            console.log(this.slectTime)
-            let startTime = this.moment(this.slectTime[0]).format("YYYY-MM-DD");
-            let endTime = this.moment(this.slectTime[1]).format("YYYY-MM-DD");
-            console.log(startTime)
-            console.log(endTime)
-            console.log(this.processingTime)
+            
+            this.updateSearchData()
+            this.getTableList()
+            // this.curSelectOrgType = this.orgType
+            
+            if (this.orgType == 1) {
+                this.curShowChartsData = this.lineChartsData2
+                for(let j = 0; j < this.curShowChartsData.length ; j++) {
+                    this.lineCharts(j,this.curShowChartsData[j],2)
+                }
+            } else if (this.orgType == 2) {
+                this.curShowChartsData = this.lineChartsData3
+                for(let j = 0; j < this.curShowChartsData.length ; j++) {
+                    this.lineCharts(j,this.curShowChartsData[j],3)
+                }
+            }
+        },
+        updateSearchData() {
+            let startTime;
+            let endTime;
+            if (this.slectTime) {
+                startTime = this.moment(this.slectTime[0]).format("YYYY-MM-DD");
+                endTime = this.moment(this.slectTime[1]).format("YYYY-MM-DD");
+            } else {
+               startTime = '' 
+               endTime = '' 
+            } 
+            let curOrgType;
+            let curTimeOrgType;
+            if (this.timeSet && this.orgType) {
+                curOrgType = 3
+                curTimeOrgType = this.orgType
+            } else if(!this.timeSet && this.orgType) {
+                curOrgType = this.orgType
+                curTimeOrgType = ''
+            } else if (this.timeSet && !this.orgType) {
+                curOrgType = 3
+                curTimeOrgType = ''
+            }
+            this.searchData.name = this.searchInput
+            this.searchData.orgType = curOrgType || 1
+            this.searchData.orgCodes = this.orgCodes || ['7200']
+            this.searchData.startTime = startTime
+            this.searchData.endTime = endTime
+            this.searchData.processingTime = ''
+            this.searchData.timeOrgType = curTimeOrgType
+            this.searchData.current = this.pagination.page
+            this.searchData.size = this.pagination.limit
+            console.log(this.searchData)
         },
         //第一个搜索
         search() {
@@ -457,10 +639,6 @@ export default {
             }
         },
         getTopFiveData() {
-        //    let data = {
-        //     current:1,
-        //     pageSize:10
-        //    }
            getTopFive().then((res) => {
               let result = res.data.data
               for(let i = 0; i < result.length ; i++) {
@@ -516,6 +694,7 @@ export default {
                     option = this.changeChartsOption(4,dataList)
                 }
             }
+            myChart.clear()
             option && myChart.setOption(option)
             window.addEventListener("resize", function () {
                 myChart.resize()
@@ -690,6 +869,7 @@ export default {
                     }
                 ]
             };
+            myChart.clear();
             option && myChart.setOption(option);
             window.addEventListener("resize", function () {
                 myChart.resize()
@@ -853,6 +1033,7 @@ export default {
                     }
                 ]
             };
+            myChart.clear();
             option && myChart.setOption(option);
             window.addEventListener("resize", function () {
                 myChart.resize()
@@ -944,6 +1125,7 @@ export default {
                     // }, 
                 ]
             };
+            myChart.clear();
             option && myChart.setOption(option);
             window.addEventListener("resize", function () {
                 myChart.resize()
@@ -1218,7 +1400,8 @@ export default {
    
     /deep/{
         .el-select .el-input {
-            width: 130px;
+            // width: 130px;
+            width: 100%;
         }
         .el-table {
             .row-class {
