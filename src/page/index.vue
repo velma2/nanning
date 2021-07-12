@@ -13,7 +13,7 @@
             <div class="content">
             <div class="search-options white-bg flex-row-sb">
                 <div class="flex-row search-option" style="width: 15%">
-                    <span class="title">搜索</span>
+                    <span class="title">搜索内容</span>
                     <!-- <el-input placeholder="请输入内容" v-model="searchInput" class="input-with-select" clearable>
                         <el-select v-model="selectValue" slot="prepend" placeholder="请选择" clearable>
                         <el-option label="北海海关" value="1"></el-option>
@@ -74,7 +74,7 @@
                 </div>
                 <div  class="flex-row search-option" style="width: 11%">
                     <span class="title">办理时长</span>
-                    <el-input-number v-model="processingTime" controls-position="right" :min="1" :max="10" placeholder="请选择时间"></el-input-number>
+                    <el-input-number v-model="processingTime" controls-position="right" placeholder="请选择时间"></el-input-number>
                 </div>
                 <div>
                     <el-button  @click="resetValue">重置</el-button>
@@ -132,26 +132,26 @@
                     </div>
                 </div>
             </div>
-            <div v-if="curSelectOrgType !==3" class="data-show white-bg">
+            <div v-if="curSelectOrgType !== 3" class="data-show white-bg">
                 <div class="content-desc flex">
                     <div class="data-show-chart" style="margin-right: .5%;">
                         <div class="subtitle flex-row">
                             <span class="title-line"></span>
-                            <span>南宁海关-预警信息数量 （条）</span>
+                            <span>{{titleType == 1 ? titleList[0].title[0] : titleList[1].title[0]}}</span>
                         </div>
                         <div id="line-chart1" class="chart-div"></div>
                     </div>
                     <div class="data-show-chart" style="margin-right: .5%;">
                         <div class="subtitle flex-row">
                             <span class="title-line"></span>
-                            <span>南宁海关-超办理时限（15天）单数</span>
+                            <span>{{titleType == 1 ? titleList[0].title[1] : titleList[1].title[1]}}</span>
                         </div>
                         <div id="line-chart2" class="chart-div"></div>
                     </div>
                     <div class="data-show-chart">
                         <div class="subtitle flex-row">
                             <span class="title-line"></span>
-                            <span>南宁海关-截止当前办结预警信息数量 （条）</span>
+                            <span>{{titleType == 1 ? titleList[0].title[2] : titleList[1].title[2]}}</span>
                         </div>
                         <div id="line-chart3" class="chart-div"></div>
                     </div>
@@ -180,6 +180,14 @@
                                 :sortable="item.sortable"
                                 show-overflow-tooltip>
                             </el-table-column>
+                            <el-table-column
+                                v-if="curSelectOrgType == 3"
+                                prop="status"
+                                label="状态">
+                                <template slot-scope="scope">
+                                    {{getStatuabyCode(scope.row.status)}}
+                                </template>
+                                </el-table-column>
                         </el-table>
                         <div style="margin-top: 20px;display: flex;justify-content: flex-end">
                         <el-pagination @size-change="handleSizeChange"
@@ -194,8 +202,7 @@
                     </div>
                     </div>
                     <div class="data-echatrs white-bg">
-                            
-                        <div class="charts-div" v-if="curSelectOrgType !==3">
+                        <div class="charts-div" v-if="curSelectOrgType !=3">
                             <div class="subtitle flex-row">
                                 <span class="title-line"></span>
                                 <span>预警信息量排名</span>
@@ -204,7 +211,7 @@
 
                             </div>
                         </div>
-                        <div class="charts-div" v-if="curSelectOrgType !==1 && curSelectOrgType !==2">
+                        <div class="charts-div" v-if="curSelectOrgType != 1 && curSelectOrgType != 2">
                             <div class="subtitle flex-row">
                                 <span class="title-line"></span>
                                 <span>预警信息量</span>
@@ -233,12 +240,14 @@
 <script>
 import echarts from 'echarts'
 import corls from './components/corls'
- import { getTopFive,getOrType,getStatusList,getTableList} from '@/api/index'
+// import qs from 'qs'
+ import { getTopFive,getOrType,getStatusList,getTableList,getPanoramaList} from '@/api/index'
 export default {
     name: 'Index',
      data () {
         return {
-            timeSet: false,
+            isShow: true,
+            timeSet: false, // 预警时间设置
             searchData: {
                 name: '', // 搜索内容
                 orgType: '', // 组织机构类型 1职能部门 2隶属海关 3预警设置时间
@@ -284,33 +293,7 @@ export default {
             orgCodes:'', // 组织机构下面的分支
             curSelectType: 1, // 记录搜索选择的类型来判断中间三个折线图是否隐藏
             statusList: [], // 预警状态类型
-            pickerOptions: {
-                shortcuts: [{
-                    text: '最近一周',
-                    onClick(picker) {
-                    const end = new Date();
-                    const start = new Date();
-                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
-                    picker.$emit('pick', [start, end]);
-                    }
-                }, {
-                    text: '最近一个月',
-                    onClick(picker) {
-                    const end = new Date();
-                    const start = new Date();
-                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
-                    picker.$emit('pick', [start, end]);
-                    }
-                }, {
-                    text: '最近三个月',
-                    onClick(picker) {
-                    const end = new Date();
-                    const start = new Date();
-                    start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
-                    picker.$emit('pick', [start, end]);
-                    }
-                }]
-            },
+            pickerOptions: corls.pickerOptions,
             slectTime: '', // 预警开始时间和结束时间
             processingTime: '', // 办理时长
             curTotalTableData: corls.totalTableData, // 当前展示的表格名称
@@ -448,7 +431,67 @@ export default {
                 date: [1,2,3,4,5,6,7,8,9,10,11,12],
                 data: [120, 132, 101, 134, 90, 230, 210,100,120,130,140,170]
             },
-            rowList: null
+            rowList: null,
+            titleType: 2,
+            titleList: [
+                {
+                    type: 1,
+                    title: [
+                        '南宁海关-预警信息数量 （条）',
+                        '南宁海关-超办理时限（15天）单数',
+                        '南宁海关-截止当前办结预警信息数量 （条）'
+                    ]
+                },
+                {
+                    type: 2,
+                    title: [
+                        '预警信息数量',
+                        '办结率%',
+                        '预警信息数量（条）'
+                    ]
+                }
+            ],
+        }
+    },
+    watch: {
+        curSelectOrgType() {
+            // 海关
+            if (this.curSelectOrgType == 1) {
+                this.$nextTick(() => {
+                   this.curShowChartsData = this.lineChartsData2
+                    for(let j = 0; j < this.curShowChartsData.length ; j++) {
+                        this.lineCharts(j,this.curShowChartsData[j],2)
+                    }  
+                });
+                
+            // 隶属部门
+            } else if (this.curSelectOrgType == 2) {
+                this.$nextTick(() => {
+                    this.curShowChartsData = this.lineChartsData3
+                    for(let j = 0; j < this.curShowChartsData.length ; j++) {
+                        this.lineCharts(j,this.curShowChartsData[j],3)
+                    } 
+                });
+                
+            // 预警时间设置
+            } else if (this.curSelectOrgType == 3) {
+                console.log('预警时间设置')
+                this.$nextTick(() => {
+                    this.lineCharts5()
+                    this.lineCharts6()
+                });
+            } else {
+                this.$nextTick(() => {
+                    this.lineCharts4()
+                    this.lineCharts5()
+                    this.lineCharts6()
+                    this.curShowChartsData = this.lineChartsData
+                    for(let j = 0; j < this.curShowChartsData.length ; j++) {
+                        this.lineCharts(j,this.curShowChartsData[j],1)
+                    }
+                });
+                
+            }
         }
     },
     mounted() {
@@ -461,7 +504,7 @@ export default {
         }
         this.lineCharts4()
         this.lineCharts5()
-        this.lineCharts6()
+        
         // 获取本月预计信息量排行TOP5数据
         this.getTopFiveData()
 
@@ -470,24 +513,53 @@ export default {
         for(let i = 0; i < typeList.length ; i++) {
             this.getOrType(typeList[i])
         }
-        console.log(this.slectTime)
         this.getTableList()
+        this.getData()
     },
     methods: {
-        // 获取列表
+        // 获取列表数据
         getTableList() {
             this.updateSearchData()
+            // console.log(qs.stringify(this.searchData))
             getTableList(this.searchData).then((res)=> {
                 let result = res.data.data
                 if (this.timeSet) {
-                    this.curTotalTablesHeader = corls.totalTablesHeader
-                } else if (this.orgType == 1 || this.orgType == 2) {
                     this.curTotalTablesHeader = corls.totalTablesHeader2
+                } else if (this.orgType == 1 || this.orgType == 2) {
+                    this.curTotalTablesHeader = corls.totalTablesHeader
                 }
                 this.curTotalTableData = result.records
                 this.pagination.size =  result.size
                 this.pagination.page = result.current
                 this.pagination.total = result.total 
+            }).catch((err)=> {
+                console.log(err)
+            })
+        },
+        // 获取几个图表数据
+        getData() {
+            this.updateSearchData()
+            getPanoramaList(this.searchData).then((res)=> {
+                let result = res.data.data
+                 console.log(result)
+                 result.forEach((item)=> {
+                     if (item.type == 3) {
+                         console.log(1)
+                    } else if (item.type == 4) {
+                        console.log(1)
+                    } else if (item.type == 5) {
+                        console.log(1)
+                    } else if (item.type == 6) {
+                        console.log(1)
+                    } else if (item.type == 7) {
+                        console.log(1)
+                    } else if (item.type == 8) {
+                        this.halfKnotDuration.date = item.x
+                        this.halfKnotDuration.data = item.y
+                        console.log(this.halfKnotDuration)
+                        this.lineCharts6()
+                    }
+                 })
             }).catch((err)=> {
                 console.log(err)
             })
@@ -500,6 +572,15 @@ export default {
             }).catch((err)=> {
                 console.log(err)
             })
+        },
+        getStatuabyCode(code) {
+            let status = ''
+            this.statusList.forEach((item)=> {
+                if (item.code == code) {
+                    status = item.title
+                }
+            })
+            return status
         },
         // 获取组织机构的对应的部门
         getOrType(type) {
@@ -543,16 +624,21 @@ export default {
             this.orgType = ''
             this.orgCodes = ''
             this.timeSet = false
+            this.curSelectOrgType = 0
+            this.isShow = true
             this.slectTime = ''
             this.processingTime = ''
+            
         },
         // 搜索确认
         confirmSearch() {
-            
+            if (this.timeSet) {
+                this.isShow = false
+            }
             this.updateSearchData()
             this.getTableList()
+            this.getData()
             // this.curSelectOrgType = this.orgType
-            
             if (this.orgType == 1) {
                 this.curShowChartsData = this.lineChartsData2
                 for(let j = 0; j < this.curShowChartsData.length ; j++) {
@@ -587,9 +673,10 @@ export default {
                 curOrgType = 3
                 curTimeOrgType = ''
             }
+            this.curSelectOrgType = curOrgType 
             this.searchData.name = this.searchInput
             this.searchData.orgType = curOrgType || 1
-            this.searchData.orgCodes = this.orgCodes || ['7200']
+            this.searchData.orgCodes = this.orgCodes
             this.searchData.startTime = startTime
             this.searchData.endTime = endTime
             this.searchData.processingTime = ''
@@ -597,6 +684,7 @@ export default {
             this.searchData.current = this.pagination.page
             this.searchData.size = this.pagination.limit
             console.log(this.searchData)
+            // console.log(this.searchData)
         },
         //第一个搜索
         search() {
@@ -1171,13 +1259,6 @@ export default {
                             labelLine: {
                                 show: false
                             },
-                            // data: [
-                            //     {value: 1048, name: '搜索引擎'},
-                            //     {value: 735, name: '直接访问'},
-                            //     {value: 580, name: '邮件营销'},
-                            //     {value: 484, name: '联盟广告'},
-                            //     {value: 300, name: '视频广告'},
-                            // ]
                             data: dataList.data.data
                         }
                     ]

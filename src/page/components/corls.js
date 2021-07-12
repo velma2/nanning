@@ -80,7 +80,7 @@ export default {
     ],
     totalTablesHeader2: [
         {
-            prop: 'warningNum',
+            prop: 'alarmId',
             label: '预警单号',
         },
         {
@@ -88,28 +88,28 @@ export default {
             label: '指标编码',
         },
         {
-            prop: 'offZone',
+            prop: 'customsName',
             label: '关区',
             width: '100'
         },
         {
-            prop: 'department',
+            prop: 'modelName',
             label: '职能处室',
             width: '130'
         },
         {
-            prop: 'content',
+            prop: 'alarmContent',
             label: '预警内容',
             width: '120'
         },
         {
-            prop: 'startTime',
+            prop: 'alarmTime',
             label: '预警开始时间',
             sortable: true,
             width: '90'
         },
         {
-            prop: 'endTime',
+            prop: 'mdate',
             label: '预警结束时间',
             sortable: true,
             width: '90'
@@ -119,10 +119,10 @@ export default {
             label: '半节时长(单位: 小时)',
             sortable: true,
         },
-        {
-            prop: 'status',
-            label: '状态',
-        },
+        // {
+        //     prop: 'status',
+        //     label: '状态',
+        // },
     ],
     tableData: [
         {
@@ -340,4 +340,31 @@ export default {
         ]
     },
     ],
+    pickerOptions: {
+        shortcuts: [{
+            text: '最近一周',
+            onClick(picker) {
+            const end = new Date();
+            const start = new Date();
+            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+            picker.$emit('pick', [start, end]);
+            }
+        }, {
+            text: '最近一个月',
+            onClick(picker) {
+            const end = new Date();
+            const start = new Date();
+            start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+            picker.$emit('pick', [start, end]);
+            }
+        }, {
+            text: '最近三个月',
+            onClick(picker) {
+            const end = new Date();
+            const start = new Date();
+            start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+            picker.$emit('pick', [start, end]);
+            }
+        }]
+    },
 }
