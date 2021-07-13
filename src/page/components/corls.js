@@ -58,7 +58,7 @@ export default {
             width: '120'
         },
         {
-            prop: 'department',
+            prop: 'closingRate',
             label: '办结率（%）',
             sortable: true,
             width: '100'
@@ -109,14 +109,14 @@ export default {
             width: '90'
         },
         {
-            prop: 'mdate',
+            prop: 'endTime',
             label: '预警结束时间',
             sortable: true,
             width: '90'
         },
         {
             prop: 'hours',
-            label: '半节时长(单位: 小时)',
+            label: '办节时长(单位: 小时)',
             sortable: true,
         },
         // {

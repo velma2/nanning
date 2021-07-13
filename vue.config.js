@@ -12,7 +12,7 @@ module.exports = {
         open: false,//项目启动时是否自动打开浏览器，我这里设置为false,不打开，true表示打开
         proxy: {
         '': {
-            target: 'http://192.168.2.29:18001/', // 域名
+            target: 'http://192.168.2.46:18001/', // 域名
             changOrigin: true,
         }
         },

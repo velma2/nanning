@@ -22,6 +22,7 @@
                         <el-button slot="append" icon="el-icon-search" @click="search"></el-button>
                     </el-input> -->
                     <el-input
+                        clearable
                         placeholder="请输入"
                         prefix-icon="el-icon-search"
                         v-model="searchInput">
@@ -32,7 +33,7 @@
                 </div>
                 <div class="flex-row search-option" style="width: 28%">
                     <span class="title">组织机构</span>
-                    <el-select v-model="orgType" placeholder="请选择" @change="orgChange" clearable>
+                    <el-select v-model="orgType" placeholder="请选择" @change="orgChange">
                         <el-option
                         v-for="item in options"
                         :key="item.value"
@@ -140,6 +141,7 @@
                             <span>{{titleType == 1 ? titleList[0].title[0] : titleList[1].title[0]}}</span>
                         </div>
                         <div id="line-chart1" class="chart-div"></div>
+                        <div class="no-data" v-if="hasData1">- 暂无数据 -</div>
                     </div>
                     <div class="data-show-chart" style="margin-right: .5%;">
                         <div class="subtitle flex-row">
@@ -147,6 +149,7 @@
                             <span>{{titleType == 1 ? titleList[0].title[1] : titleList[1].title[1]}}</span>
                         </div>
                         <div id="line-chart2" class="chart-div"></div>
+                        <div class="no-data" v-if="hasData2">- 暂无数据 -</div>
                     </div>
                     <div class="data-show-chart">
                         <div class="subtitle flex-row">
@@ -154,6 +157,7 @@
                             <span>{{titleType == 1 ? titleList[0].title[2] : titleList[1].title[2]}}</span>
                         </div>
                         <div id="line-chart3" class="chart-div"></div>
+                        <div class="no-data" v-if="hasData3">- 暂无数据 -</div>
                     </div>
                 </div>
             </div>
@@ -185,20 +189,29 @@
                                 prop="status"
                                 label="状态">
                                 <template slot-scope="scope">
-                                    {{getStatuabyCode(scope.row.status)}}
+                                    <span v-if="scope.row.status == 2" style="color: #5AD8A6">
+                                        {{getStatuabyCode(scope.row.status)}}
+                                    </span>
+                                    <span v-if="scope.row.status == 1" style="color: #409eff">
+                                        {{getStatuabyCode(scope.row.status)}}
+                                    </span>
+                                    <span v-if="scope.row.status == 0" style="color: red">
+                                        {{getStatuabyCode(scope.row.status)}}
+                                    </span>
                                 </template>
                                 </el-table-column>
                         </el-table>
                         <div style="margin-top: 20px;display: flex;justify-content: flex-end">
                         <el-pagination @size-change="handleSizeChange"
                             background
-                            :page-sizes="[10, 20, 30, 40]"
+                            
                             @current-change="handleCurrentChange"
                             :current-page.sync="pagination.page"
                             :page-size="pagination.limit"
-                            layout="sizes,total, prev, pager, next, jumper"
+                            layout="total, prev, pager, next, jumper"
                             :total="pagination.total">
                         </el-pagination>
+                        <!-- :page-sizes="[10, 20, 30, 40]" -->
                     </div>
                     </div>
                     <div class="data-echatrs white-bg">
@@ -207,27 +220,24 @@
                                 <span class="title-line"></span>
                                 <span>预警信息量排名</span>
                             </div>
-                            <div id="line-chart4" class="charts chart-div">
-
-                            </div>
+                            <div id="line-chart4" class="charts chart-div"></div>
+                            <div class="no-data" v-if="hasData4">- 暂无数据 -</div>
                         </div>
                         <div class="charts-div" v-if="curSelectOrgType != 1 && curSelectOrgType != 2">
                             <div class="subtitle flex-row">
                                 <span class="title-line"></span>
-                                <span>预警信息量</span>
+                                <span>办结时长均值</span>
                             </div>
-                            <div id="line-chart5" class="charts chart-div">
-
-                            </div>
+                            <div id="line-chart5" class="charts chart-div"></div>
+                            <div class="no-data" v-if="hasData5">- 暂无数据 -</div>
                         </div>
                         <div class="charts-div">
                             <div class="subtitle flex-row">
                                 <span class="title-line"></span>
                                 <span>单位：单</span>
                             </div>
-                            <div id="line-chart6" class="charts chart-div">
-
-                            </div>
+                            <div id="line-chart6" class="charts chart-div"></div>
+                            <div class="no-data" v-if="hasData6">- 暂无数据 -</div>
                         </div>
                     </div>
                 </div>
@@ -246,6 +256,12 @@ export default {
     name: 'Index',
      data () {
         return {
+            hasData1: false,
+            hasData2: false,
+            hasData3: false,
+            hasData4: false,
+            hasData5: false,
+            hasData6: false,
             isShow: true,
             timeSet: false, // 预警时间设置
             searchData: {
@@ -257,8 +273,9 @@ export default {
                 processingTime: '', // 办理时长
                 timeOrgType: '', // 当预警设置时间和组织机构同时选中的时候此时参数的值为组织机构的类型
                 current: 1, // 当前页码
-                size: 10, // 每页显示的条数
+                size: 1, // 每页显示的条数
             },
+            curSearchData: {},
             searchInput: '', // 搜索框的值
             timeOrgType: '',
             options2: [{
@@ -288,15 +305,14 @@ export default {
                 },
             ],
             selectValue: '', // 搜索选择的类型值
-            orgType: '', // 组织机构选中的值
+            orgType: '1', // 组织机构选中的值
             curSelectOrgType: 0,
-            orgCodes:'', // 组织机构下面的分支
-            curSelectType: 1, // 记录搜索选择的类型来判断中间三个折线图是否隐藏
+            orgCodes:['7200'], // 组织机构下面的分支
             statusList: [], // 预警状态类型
             pickerOptions: corls.pickerOptions,
             slectTime: '', // 预警开始时间和结束时间
             processingTime: '', // 办理时长
-            curTotalTableData: corls.totalTableData, // 当前展示的表格名称
+            curTotalTableData: [], // 当前展示的表格名称
             curTotalTablesHeader: corls.totalTablesHeader, // 当前展示的表格数据
             tablesHeader: corls.tablesHeader,
             totalTablesHeader: corls.totalTablesHeader,
@@ -308,7 +324,7 @@ export default {
             pagination: {
                 page: 1,
                 limit: 10,
-                total: 30,
+                total: null,
             },
             curShowChartsData: [],
             // 默认展示的图
@@ -317,24 +333,30 @@ export default {
                     id: 'line-chart1',
                     color: '#5B8FF9',
                     data : {
-                        date: ['202001', '202002','202003','202004','202005','202006','202007' ],
-                        data: [800, 700, 600, 500, 400, 330, 300, 280]
+                        // date: ['202001', '202002','202003','202004','202005','202006','202007' ],
+                        // data: [800, 700, 600, 500, 400, 330, 300, 280]
+                        date: [],
+                        data: []
                     },
                 },
                 {
                     id: 'line-chart2',
                     color: '#FFC53D',
                     data : {
-                        date: ['202001', '202002','202003','202004','202005','202006','202007' ],
-                        data: [800, 700, 600, 500, 400, 330, 300, 280]
+                        // date: ['202001', '202002','202003','202004','202005','202006','202007' ],
+                        // data: [800, 700, 600, 500, 400, 330, 300, 280]
+                        date: [],
+                        data: []
                     },
                 },
                 {
                     id: 'line-chart3',
                     color: '#69C0FF',
                     data : {
-                        date: ['202001', '202002','202003','202004','202005','202006','202007' ],
-                        data: [800, 700, 600, 500, 400, 330, 300, 280]
+                        // date: ['202001', '202002','202003','202004','202005','202006','202007' ],
+                        // data: [800, 700, 600, 500, 400, 330, 300, 280]
+                        date: [],
+                        data: []
                     },
                 }
             ],
@@ -345,13 +367,13 @@ export default {
                     color: '#5B8FF9',
                     data: {
                         data:  [
-                            {value: 1048, name: '防城海关'},
-                            {value: 735, name: '桂林海关'},
-                            {value: 580, name: '梧州海关'},
-                            {value: 484, name: '玉林海关'},
-                            {value: 300, name: '柳州海关'},
-                            {value: 300, name: '北海海关'},
-                            {value: 300, name: '邕邮海关'},
+                            // {value: 1048, name: '防城海关'},
+                            // {value: 735, name: '桂林海关'},
+                            // {value: 580, name: '梧州海关'},
+                            // {value: 484, name: '玉林海关'},
+                            // {value: 300, name: '柳州海关'},
+                            // {value: 300, name: '北海海关'},
+                            // {value: 300, name: '邕邮海关'},
                         ]
                     }
                 },
@@ -359,16 +381,20 @@ export default {
                     id: 'line-chart2',
                     color: '#FFC53D',
                     data : {
-                        date: ['桂林海关', '河池海关', '柳州海关', '玉林海关', '北海海关', '永口海关'],
-                        data: [0, 2.34, 2.90, 1.04, 13.44, 6.30]
+                        // date: ['桂林海关', '河池海关', '柳州海关', '玉林海关', '北海海关', '永口海关'],
+                        // data: [0, 2.34, 2.90, 1.04, 13.44, 6.30]
+                        date: [],
+                        data: []
                     },
                 },
                 {
                     id: 'line-chart3',
                     color: '#69C0FF',
                     data : {
-                        date: ['202001', '202002','202003','202004','202005','202006','202007' ],
-                        data: [800, 700, 600, 500, 400, 330, 300, 280]
+                        // date: ['202001', '202002','202003','202004','202005','202006','202007' ],
+                        // data: [800, 700, 600, 500, 400, 330, 300, 280]
+                        date: [],
+                        data: []
                     },
                 }
             ],
@@ -379,13 +405,13 @@ export default {
                     color: '#5B8FF9',
                     data: {
                         data: [
-                            {value: 1048, name: '关税处'},
-                            {value: 735, name: '综合业务处'},
-                            {value: 580, name: '口岸监管处'},
-                            {value: 484, name: '风险防控分局'},
-                            {value: 300, name: '监察室'},
-                            {value: 300, name: '统计分析处'},
-                            {value: 300, name: '监督内审处'},
+                            // {value: 1048, name: '关税处'},
+                            // {value: 735, name: '综合业务处'},
+                            // {value: 580, name: '口岸监管处'},
+                            // {value: 484, name: '风险防控分局'},
+                            // {value: 300, name: '监察室'},
+                            // {value: 300, name: '统计分析处'},
+                            // {value: 300, name: '监督内审处'},
                         ]
                     }
                 },
@@ -393,43 +419,57 @@ export default {
                     id: 'line-chart2',
                     color: '#FFC53D',
                     data : {
-                        date: ['监察室', '商品检验处', '卫生检疫处',
-                    '企业管理和稽查处', '监督内审处', '综合业务处','动植物和视频检验检疫处','关税处','风险防控分局','统计分析处'
-                    ],
-                        data: [120, 0, 150, 80, 70, 110, 130,120,130,150]
+                        // date: ['监察室', '商品检验处', '卫生检疫处',
+                        //     '企业管理和稽查处', '监督内审处', '综合业务处','动植物和视频检验检疫处','关税处','风险防控分局','统计分析处'
+                        //     ],
+                        // data: [120, 0, 150, 80, 70, 110, 130,120,130,150]
+                        date: [],
+                        data: []
                     },
                 },
                 {
                     id: 'line-chart3',
                     color: '#5B8FF9',
                     data : {
-                        date: ['202001', '202002','202003','202004','202005','202006','202007' ],
-                        data: [800, 700, 600, 500, 400, 330, 300, 280]
+                        date: [],
+                        data: []
+                        // date: ['202001', '202002','202003','202004','202005','202006','202007' ],
+                        // data: [800, 700, 600, 500, 400, 330, 300, 280]
                     },
                 }
             ],
             chartsIdList: ['line-chart1','line-chart2','line-chart3'],
             warningQuantitySort: {
-                date:['6:00','8:00','10:00','12:00','14:00','16:00','18:00','20:00','22:00'],
-                data:[
-                    [600, 700, 100, 500, 200, 300, 100, 100, 500],
-                    [300, 600, 300, 500, 500, 380, 330, 600, 300],
-                    [400, 600, 300, 200, 400, 310, 456, 600, 200],
-                    [700, 100, 800, 800, 400, 390, 555, 600, 333]
-                ]
+                colorList: ['#5B8FF9','#40A9FF','#FFC53D','#5AD8A6','#9270CA','#6DC8EC','#F6C3B7','#FBE5A2','#F6BD16','#436CB6',
+                            '#BDEFDB','#BDD2FD'],
+                name: [],
+                date: [],
+                data: []
+                // date:['6:00','8:00','10:00','12:00','14:00','16:00','18:00','20:00','22:00'],
+                // data:[
+                //     [600, 700, 100, 500, 200, 300, 100, 100, 500],
+                //     [300, 600, 300, 500, 500, 380, 330, 600, 300],
+                //     [400, 600, 300, 200, 400, 310, 456, 600, 200],
+                //     [700, 100, 800, 800, 400, 390, 555, 600, 333]
+                // ]
             },
             warningQuantity: {
-                date: ['1', '2','3','4','5','6','7','8','9','10','11','12' ],
-                data: {
-                    // 预警开始时间
-                    startData: [2, 3, 2, 4, 2, 2, 2,2, 4, 2, 2, 2 ],
-                    // 预警结束时间
-                    endData : [4, 5, 4, 5, 4, 10, 22,4, 5, 4, 10,7 ]
-                }
+                date: [],
+                data: []
+                // date: ['1', '2','3','4','5','6','7','8','9','10','11','12' ],
+                // data: [2, 3, 2, 4, 2, 2, 2,2, 4, 2, 2, 2 ],
+                // data: {
+                //     // 预警开始时间
+                //     startData: [2, 3, 2, 4, 2, 2, 2,2, 4, 2, 2, 2 ],
+                //     // 预警结束时间
+                //     endData : [4, 5, 4, 5, 4, 10, 22,4, 5, 4, 10,7 ]
+                // }
             },
             halfKnotDuration: {
-                date: [1,2,3,4,5,6,7,8,9,10,11,12],
-                data: [120, 132, 101, 134, 90, 230, 210,100,120,130,140,170]
+                date: [],
+                data: []
+                // date: [1,2,3,4,5,6,7,8,9,10,11,12],
+                // data: [120, 132, 101, 134, 90, 230, 210,100,120,130,140,170]
             },
             rowList: null,
             titleType: 2,
@@ -453,57 +493,10 @@ export default {
             ],
         }
     },
-    watch: {
-        curSelectOrgType() {
-            // 海关
-            if (this.curSelectOrgType == 1) {
-                this.$nextTick(() => {
-                   this.curShowChartsData = this.lineChartsData2
-                    for(let j = 0; j < this.curShowChartsData.length ; j++) {
-                        this.lineCharts(j,this.curShowChartsData[j],2)
-                    }  
-                });
-                
-            // 隶属部门
-            } else if (this.curSelectOrgType == 2) {
-                this.$nextTick(() => {
-                    this.curShowChartsData = this.lineChartsData3
-                    for(let j = 0; j < this.curShowChartsData.length ; j++) {
-                        this.lineCharts(j,this.curShowChartsData[j],3)
-                    } 
-                });
-                
-            // 预警时间设置
-            } else if (this.curSelectOrgType == 3) {
-                console.log('预警时间设置')
-                this.$nextTick(() => {
-                    this.lineCharts5()
-                    this.lineCharts6()
-                });
-            } else {
-                this.$nextTick(() => {
-                    this.lineCharts4()
-                    this.lineCharts5()
-                    this.lineCharts6()
-                    this.curShowChartsData = this.lineChartsData
-                    for(let j = 0; j < this.curShowChartsData.length ; j++) {
-                        this.lineCharts(j,this.curShowChartsData[j],1)
-                    }
-                });
-                
-            }
-        }
-    },
+    watch: {},
     mounted() {
         // 获取预警类型
         this.getStatus()
-
-        this.curShowChartsData = this.lineChartsData
-        for(let j = 0; j < this.curShowChartsData.length ; j++) {
-            this.lineCharts(j,this.curShowChartsData[j],1)
-        }
-        this.lineCharts4()
-        this.lineCharts5()
         
         // 获取本月预计信息量排行TOP5数据
         this.getTopFiveData()
@@ -513,53 +506,153 @@ export default {
         for(let i = 0; i < typeList.length ; i++) {
             this.getOrType(typeList[i])
         }
+        // 获取列表数据
         this.getTableList()
-        this.getData()
+
+        // 获取图表数据
+        this.getData(1)
     },
     methods: {
         // 获取列表数据
         getTableList() {
             this.updateSearchData()
-            // console.log(qs.stringify(this.searchData))
-            getTableList(this.searchData).then((res)=> {
-                let result = res.data.data
-                if (this.timeSet) {
-                    this.curTotalTablesHeader = corls.totalTablesHeader2
-                } else if (this.orgType == 1 || this.orgType == 2) {
-                    this.curTotalTablesHeader = corls.totalTablesHeader
-                }
-                this.curTotalTableData = result.records
-                this.pagination.size =  result.size
-                this.pagination.page = result.current
-                this.pagination.total = result.total 
-            }).catch((err)=> {
-                console.log(err)
-            })
+            this.$nextTick(() => {
+                getTableList(this.curSearchData).then((res)=> {
+                    let result = res.data.data
+                    if (this.timeSet) {
+                        this.curTotalTablesHeader = corls.totalTablesHeader2
+                    } else if (this.orgType == 1 || this.orgType == 2) {
+                        this.curTotalTablesHeader = corls.totalTablesHeader
+                    }
+                    this.curTotalTableData = result.records
+                    // this.pagination.size =  result.size
+                    this.pagination.page = result.current
+                    this.pagination.total = result.total 
+                }).catch((err)=> {
+                    console.log(err)
+                })
+            });
+            
         },
-        // 获取几个图表数据
-        getData() {
-            this.updateSearchData()
-            getPanoramaList(this.searchData).then((res)=> {
+        // 获取图表数据
+        getData(type) {
+            this.updateSearchData(type)
+            getPanoramaList(this.curSearchData).then((res)=> {
                 let result = res.data.data
                  console.log(result)
+                 console.log('当前机构类型'+this.curSelectOrgType)
                  result.forEach((item)=> {
                      if (item.type == 3) {
-                         console.log(1)
+                         this.hasData1 = false
+                         if (item.x.length < 1) {
+                            this.hasData1 = true
+                         }
+                         // 有选具体机构
+                        if (this.orgCodes && this.orgCodes.length == 1) {
+                            if (this.orgCodes && this.orgCodes.length > 0) {
+                                this.lineChartsData[0].data.date = item.x
+                                this.lineChartsData[0].data.data = item.y[0]
+                            }
+                        // 选了隶属海关时候
+                        } else if (this.curSelectOrgType == 1) {
+                            this.lineChartsData2[0].data = []
+                            for(let j = 0; j < item.x.length ; j++) {
+                                let object = {}
+                                object.value = item.y[0][j]
+                                object.name = item.x[j]
+                                this.lineChartsData2[0].data.push(object)
+                            }
+                            console.log(this.lineChartsData2[0].data)
+                        // 选了职能部门
+                        } else if (this.curSelectOrgType == 2) {
+                            this.lineChartsData3[0].data = []
+                            for(let j = 0; j < item.x.length ; j++) {
+                                let object = {}
+                                object.value = item.y[0][j]
+                                object.name = item.x[j]
+                                this.lineChartsData3[0].data.push(object)
+                            }
+                            console.log(this.lineChartsData3[0].data)
+                        }
                     } else if (item.type == 4) {
-                        console.log(1)
+                        this.hasData2 = false
+                         if (item.x.length < 1) {
+                            this.hasData2 = true
+                         }
+                        if (this.orgCodes && this.orgCodes.length == 1) {
+                            if (this.orgCodes && this.orgCodes.length > 0) {
+                                this.lineChartsData[1].data.date = item.x
+                                this.lineChartsData[1].data.data = item.y[0]
+                            }
+                        } else if (this.curSelectOrgType == 1) {
+                            this.lineChartsData2[1].data.date = item.x
+                            this.lineChartsData2[1].data.data = item.y[0]
+                        } else if (this.curSelectOrgType == 2) {
+                            this.lineChartsData3[1].data.date = item.x
+                            this.lineChartsData3[1].data.data = item.y[0]
+                        }
                     } else if (item.type == 5) {
-                        console.log(1)
+                        this.hasData3 = false
+                         if (item.x.length < 1) {
+                            this.hasData3 = true
+                         }
+                        if (this.orgCodes && this.orgCodes.length == 1) {
+                            this.lineChartsData[2].data.date = item.x
+                            this.lineChartsData[2].data.data = item.y[0]
+                        } else if (this.curSelectOrgType == 1) {
+                            this.lineChartsData2[2].data.date = item.x
+                            this.lineChartsData2[2].data.data = item.y[0]
+                        } else if (this.curSelectOrgType == 2) {
+                            this.lineChartsData3[2].data.date = item.x
+                            this.lineChartsData3[2].data.data = item.y[0]
+                        }
                     } else if (item.type == 6) {
-                        console.log(1)
+                        this.hasData4 = false
+                         if (item.x.length < 1) {
+                            this.hasData4 = true
+                         }
+                        this.warningQuantitySort.name = item.orgName
+                        this.warningQuantitySort.date = item.x
+                        this.warningQuantitySort.data = []
+                        for(let j = 0; j < item.orgName.length ; j++) {
+                            this.warningQuantitySort.data.push(item.y[j])
+                        }
+                        this.lineCharts4()
                     } else if (item.type == 7) {
-                        console.log(1)
+                        this.hasData5 = false
+                         if (item.x.length < 1) {
+                            this.hasData5 = true
+                         }
+                        this.warningQuantity.date = item.x
+                        this.warningQuantity.data = item.y[0]
+                        this.lineCharts5()
                     } else if (item.type == 8) {
+                        this.hasData6 = false
+                        console.log(item.x.length)
+                         if (item.x.length < 1) {
+                            this.hasData6 = true
+                         }
                         this.halfKnotDuration.date = item.x
-                        this.halfKnotDuration.data = item.y
-                        console.log(this.halfKnotDuration)
+                        this.halfKnotDuration.data = item.y[0]
                         this.lineCharts6()
                     }
                  })
+                 if (this.orgCodes && this.orgCodes.length == 1) {
+                     this.curShowChartsData = this.lineChartsData
+                    for(let j = 0; j < this.curShowChartsData.length ; j++) {
+                        this.lineCharts(j,this.curShowChartsData[j],1)
+                    }
+                } else if (this.curSelectOrgType == 1) { 
+                    this.curShowChartsData = this.lineChartsData2
+                    for(let j = 0; j < this.curShowChartsData.length ; j++) {
+                        this.lineCharts(j,this.curShowChartsData[j],2)
+                    }
+                } else if (this.curSelectOrgType == 2) {
+                    this.curShowChartsData = this.lineChartsData3
+                    for(let j = 0; j < this.curShowChartsData.length ; j++) {
+                        this.lineCharts(j,this.curShowChartsData[j],3)
+                    }
+                } 
             }).catch((err)=> {
                 console.log(err)
             })
@@ -568,11 +661,11 @@ export default {
         getStatus() {
             getStatusList().then((res)=> {
                 this.statusList = res.data.data
-                console.log(this.statusList)
             }).catch((err)=> {
                 console.log(err)
             })
         },
+        // 预警状态
         getStatuabyCode(code) {
             let status = ''
             this.statusList.forEach((item)=> {
@@ -598,6 +691,7 @@ export default {
                             this.orgList.zhineng.push(object)
                         }
                     }
+                    this.orgOptions = this.orgList.haiguan
                }
                
             }).catch(err =>{
@@ -606,7 +700,6 @@ export default {
         },
         // 组织机构的选中
         orgChange(val) {
-            console.log(val)
             if (val == 1) {
                 this.orgCodes = ''
                 this.orgOptions = this.orgList.haiguan
@@ -621,14 +714,16 @@ export default {
         // 重置
         resetValue() {
             this.searchInput = ''
-            this.orgType = ''
-            this.orgCodes = ''
+            // this.orgType = ''
+            // this.orgCodes = ''
             this.timeSet = false
             this.curSelectOrgType = 0
             this.isShow = true
             this.slectTime = ''
             this.processingTime = ''
-            
+            this.orgType = '1'
+            this.orgCodes = ['7200']
+            this.orgOptions = this.orgList.haiguan
         },
         // 搜索确认
         confirmSearch() {
@@ -638,22 +733,12 @@ export default {
             this.updateSearchData()
             this.getTableList()
             this.getData()
-            // this.curSelectOrgType = this.orgType
-            if (this.orgType == 1) {
-                this.curShowChartsData = this.lineChartsData2
-                for(let j = 0; j < this.curShowChartsData.length ; j++) {
-                    this.lineCharts(j,this.curShowChartsData[j],2)
-                }
-            } else if (this.orgType == 2) {
-                this.curShowChartsData = this.lineChartsData3
-                for(let j = 0; j < this.curShowChartsData.length ; j++) {
-                    this.lineCharts(j,this.curShowChartsData[j],3)
-                }
-            }
         },
-        updateSearchData() {
+        // 更新搜索栏的值
+        updateSearchData(type) {
             let startTime;
             let endTime;
+            this.curSearchData = {}
             if (this.slectTime) {
                 startTime = this.moment(this.slectTime[0]).format("YYYY-MM-DD");
                 endTime = this.moment(this.slectTime[1]).format("YYYY-MM-DD");
@@ -673,57 +758,41 @@ export default {
                 curOrgType = 3
                 curTimeOrgType = ''
             }
-            this.curSelectOrgType = curOrgType 
-            this.searchData.name = this.searchInput
-            this.searchData.orgType = curOrgType || 1
-            this.searchData.orgCodes = this.orgCodes
-            this.searchData.startTime = startTime
-            this.searchData.endTime = endTime
-            this.searchData.processingTime = ''
-            this.searchData.timeOrgType = curTimeOrgType
-            this.searchData.current = this.pagination.page
-            this.searchData.size = this.pagination.limit
-            console.log(this.searchData)
-            // console.log(this.searchData)
-        },
-        //第一个搜索
-        search() {
-            // if (!this.selectValue) {
-            //     this.$message({
-            //         message: '请选择搜索类型 !',
-            //         type: 'warning'
-            //     });
-            //     return false
-            // }
-            // if (!this.searchInput) {
-            //     this.$message({
-            //         message: '请输入搜索内容 !',
-            //         type: 'warning'
-            //     });
-            //     return false
-            // }
-            this.curSelectType = this.selectValue || 1
-            if (this.selectValue == 1 ||  this.curSelectType == 1) {
-                setTimeout(()=> {
-                    for(let j = 0; j < this.lineChartsData.length ; j++) {
-                        this.lineCharts(this.lineChartsData[j])
-                    }
-                },500)
-                this.curTotalTablesHeader = corls.totalTablesHeader2
-                this.curTotalTableData = corls.totalTableData2
-                this.pagination = {
-                    page: 1,
-                    limit: 10,
-                    total: 50,
+            this.curSelectOrgType = curOrgType || null
+            this.searchData.name = this.searchInput|| null
+            this.searchData.orgType = curOrgType || null
+            this.searchData.orgCodes = this.orgCodes|| null
+            this.searchData.startTime = startTime || null
+            this.searchData.endTime = endTime || null
+            this.searchData.processingTime = this.processingTime || null
+            this.searchData.timeOrgType = curTimeOrgType || null
+            this.searchData.current = this.pagination.page || null
+            this.searchData.size = this.pagination.limit || null
+            // 页面初始化的时候默认获取南宁海关的数据
+            if (type == 1) {
+                this.searchData.orgType = 1
+                this.searchData.orgCodes = ['7200']
+            }
+            if (this.searchData.orgType == '隶属海关') {
+                this.searchData.orgType = 1
+                this.curSelectOrgType = 1
+            }
+            if (this.searchData.orgCodes && this.searchData.orgCodes[0] == '南宁关区') {
+                this.searchData.orgCodes = ['7200']
+            }
+            // 去掉没有值的参数
+            let obj = this.searchData
+            let length = 0
+            Reflect.ownKeys(obj).forEach((key)=>{
+                if (obj[key]) {
+                    length++
+                    this.curSearchData[key] = obj[key]
                 }
-            } else if (this.selectValue == 2) {
-                this.curTotalTablesHeader = corls.totalTablesHeader
-                this.curTotalTableData = corls.totalTableData
-                this.pagination = {
-                    page: 1,
-                    limit: 10,
-                    total: 30,
-                }
+            });
+            console.log('length为'+length)
+            if (length == 3) {
+                this.curSearchData.orgType = 1
+                this.curSearchData.orgCodes = [7200]
             }
         },
         getTopFiveData() {
@@ -742,12 +811,15 @@ export default {
        },
         // 分页属性
         handleSizeChange (val) {
-            this.limit = val
-            this.loadData()
+            console.log(val)
+            this.pagination.size = val
+            this.getTableList()
         },
+        // 点击页码跳转
         handleCurrentChange (val) {
-            this.current = val
-            this.loadData()
+            console.log(val)
+            this.pagination.page = val
+            this.getTableList()
         },
         // 表格样式设置
         tableRowClassName({row, rowIndex}) {
@@ -793,6 +865,36 @@ export default {
         lineCharts4() {
             let chartDom = document.getElementById('line-chart4');
             let myChart = echarts.init(chartDom);
+            let seriesList = []
+            for(let j = 0; j <  this.warningQuantitySort.name.length ; j++) {
+                let object = {
+                    symbolSize: 8,// 拐点大小
+                    symbol: 'circle',// 拐点形状
+                    itemStyle: {
+                        normal: {
+                            color: this.warningQuantitySort.colorList[j],
+                            borderColor:'#fff',//拐点边框颜色
+                            borderWidth:2,//拐点边框大小
+                            lineStyle: {
+                                color: this.warningQuantitySort.colorList[j]
+                            }
+                        },
+                        // 鼠标悬浮拐点样式修改
+                        emphasis:{
+                            color: this.warningQuantitySort.colorList[j],
+                            borderColor: '#fff',
+                            borderWidth: 4,
+                        }
+                    },
+                    name: this.warningQuantitySort.name[j],
+                    type: 'line',
+                    color: this.warningQuantitySort.colorList[j],
+                    // data: [600, 700, 100, 500, 200, 300, 100, 100, 500],
+                    data: this.warningQuantitySort.data[j]
+                }
+                seriesList.push(object)
+            }
+            console.log(seriesList)
             let option = {
                 title: {
                     // text: '江门市蓬江区芝山五金工艺制品有限公司产值估计'
@@ -808,7 +910,7 @@ export default {
                 },
                 grid: {
                     left: '3%',
-                    right: '9%',
+                    right: '11%',
                     bottom: '7%',
                     top: '17%',
                     containLabel: true
@@ -836,9 +938,9 @@ export default {
                 },
                 yAxis: {
                     type: 'value',
-                    max: function(value) {
-                        return value.max + 400
-                    },
+                    // max: function(value) {
+                    //     return value.max + 400
+                    // },
                      axisLine: {show:false},
                     axisTick: {show:false},
                     axisLabel: {
@@ -854,108 +956,7 @@ export default {
                         }
                     }
                 },
-                series: [
-                    {
-                        symbolSize: 8,// 拐点大小
-                        symbol: 'circle',// 拐点形状
-                        itemStyle: {
-                            normal: {
-                                color: '#5B8FF9',
-                                borderColor:'#fff',//拐点边框颜色
-                                borderWidth:2,//拐点边框大小
-                                lineStyle: {
-                                    color: '#5B8FF9'
-                                }
-                            },
-                            // 鼠标悬浮拐点样式修改
-                            emphasis:{
-                                color: '#5B8FF9',
-                                borderColor: '#fff',
-                                borderWidth: 4,
-                            }
-                        },
-                        name: '类别一',
-                        type: 'line',
-                        color: '#5B8FF9',
-                        // data: [600, 700, 100, 500, 200, 300, 100, 100, 500],
-                        data: this.warningQuantitySort.data[0]
-                    },
-                    {
-                        symbolSize: 8,// 拐点大小
-                        symbol: 'circle',// 拐点形状
-                        itemStyle: {
-                            normal: {
-                                color: '#40A9FF',
-                                borderColor:'#fff',//拐点边框颜色
-                                borderWidth:2,//拐点边框大小
-                                lineStyle: {
-                                    color: '#40A9FF'
-                                }
-                            },
-                            // 鼠标悬浮拐点样式修改
-                            emphasis:{
-                                color: '#40A9FF',
-                                borderColor: '#fff',
-                                borderWidth: 4,
-                            }
-                        },
-                        name: '类别二',
-                        type: 'line',
-                        color: '#40A9FF',
-                        // data: [300, 600, 300, 500, 500, 380, 330, 600, 300],
-                        data: this.warningQuantitySort.data[1]
-                    },
-                    {
-                        symbolSize: 8,// 拐点大小
-                        symbol: 'circle',// 拐点形状
-                        itemStyle: {
-                            normal: {
-                                color: '#FFC53D',
-                                borderColor:'#fff',//拐点边框颜色
-                                borderWidth:2,//拐点边框大小
-                                lineStyle: {
-                                    color: '#FFC53D'
-                                }
-                            },
-                            // 鼠标悬浮拐点样式修改
-                            emphasis:{
-                                color: '#FFC53D',
-                                borderColor: '#fff',
-                                borderWidth: 4,
-                            }
-                        },
-                        name: '类别三',
-                        type: 'line',
-                        color: '#FFC53D',
-                        // data: [400, 600, 300, 200, 400, 310, 456, 600, 200],
-                        data: this.warningQuantitySort.data[2],
-                    },
-                    {
-                        symbolSize: 8,// 拐点大小
-                        symbol: 'circle',// 拐点形状
-                        itemStyle: {
-                            normal: {
-                                color: '#5AD8A6',
-                                borderColor:'#fff',//拐点边框颜色
-                                borderWidth:2,//拐点边框大小
-                                lineStyle: {
-                                    color: '#5AD8A6'
-                                }
-                            },
-                            // 鼠标悬浮拐点样式修改
-                            emphasis:{
-                                color: '#5AD8A6',
-                                borderColor: '#fff',
-                                borderWidth: 4,
-                            }
-                        },
-                        name: '类别四',
-                        type: 'line',
-                        color: '#5AD8A6',
-                        // data: [700, 100, 800, 800, 400, 390, 555, 600, 333],
-                        data: this.warningQuantitySort.data[3],
-                    }
-                ]
+                series: seriesList
             };
             myChart.clear();
             option && myChart.setOption(option);
@@ -1011,12 +1012,13 @@ export default {
                 },
                 yAxis: {
                     type: 'value',
-                    max: 24,
+                    // max: 24,
                     splitNumber : 5,
                     axisLine: {show:false},
                     axisTick: {show:false},
                     axisLabel: {
-                        formatter: '{value} :00',
+                        // formatter: '{value} :00',
+                        formatter: '{value}',
                         textStyle: {
                             color: 'rgba(0,0,0,0.45)',
                             fontSize: 14,
@@ -1049,7 +1051,7 @@ export default {
                                 borderWidth: 4,
                             }
                         },
-                        name: '预警开始时间',
+                        name: '',
                         type: 'line',
                         color: '#00DAFF',
                         areaStyle: {
@@ -1073,52 +1075,53 @@ export default {
                         },
                         // data: ['400', '400', '400', '500', '400', '700', '400', '400', '400', '400', '400', '400' ],
                         // data: [2, 3, 2, 4, 2, 2, 2,2, 4, 2, 2, 2 ],
-                        data: this.warningQuantity.data.startData,
+                        // data: this.warningQuantity.data.startData,
+                        data: this.warningQuantity.data,
                     },
-                    {
-                        symbolSize: 8,// 拐点大小
-                        symbol: 'circle',// 拐点形状
-                        itemStyle: {
-                            normal: {
-                                color: '#FDCA15',
-                                borderColor:'#fff',//拐点边框颜色
-                                borderWidth:2,//拐点边框大小
-                                lineStyle: {
-                                    color: '#FDCA15'
-                                }
-                            },
-                            // 鼠标悬浮拐点样式修改
-                            emphasis:{
-                                color: '#FDCA15',
-                                borderColor: '#fff',
-                                borderWidth: 4,
-                            }
-                        },
-                        name: '预警结束时间',
-                        type: 'line',
-                        color: '#FDCA15',
-                        areaStyle: {
-                            normal: {
-                                color: {
-                                    type: 'linear',
-                                    x0: 0,
-                                    y0: 0,
-                                    x2: 0,
-                                    y2: 1,
-                                    colorStops: [{
-                                        offset: 0,
-                                        color: '#FDCA15',
-                                    }, {
-                                        offset: 1,
-                                        color: 'white',
-                                    }],
-                                    globalCoord: false
-                                },
-                            }
-                        },
-                        // data: [4, 5, 4, 5, 4, 10, 22,4, 5, 4, 10,7 ],
-                        data: this.warningQuantity.data.endData,
-                    }
+                    // {
+                    //     symbolSize: 8,// 拐点大小
+                    //     symbol: 'circle',// 拐点形状
+                    //     itemStyle: {
+                    //         normal: {
+                    //             color: '#FDCA15',
+                    //             borderColor:'#fff',//拐点边框颜色
+                    //             borderWidth:2,//拐点边框大小
+                    //             lineStyle: {
+                    //                 color: '#FDCA15'
+                    //             }
+                    //         },
+                    //         // 鼠标悬浮拐点样式修改
+                    //         emphasis:{
+                    //             color: '#FDCA15',
+                    //             borderColor: '#fff',
+                    //             borderWidth: 4,
+                    //         }
+                    //     },
+                    //     name: '预警结束时间',
+                    //     type: 'line',
+                    //     color: '#FDCA15',
+                    //     areaStyle: {
+                    //         normal: {
+                    //             color: {
+                    //                 type: 'linear',
+                    //                 x0: 0,
+                    //                 y0: 0,
+                    //                 x2: 0,
+                    //                 y2: 1,
+                    //                 colorStops: [{
+                    //                     offset: 0,
+                    //                     color: '#FDCA15',
+                    //                 }, {
+                    //                     offset: 1,
+                    //                     color: 'white',
+                    //                 }],
+                    //                 globalCoord: false
+                    //             },
+                    //         }
+                    //     },
+                    //     // data: [4, 5, 4, 5, 4, 10, 22,4, 5, 4, 10,7 ],
+                    //     data: this.warningQuantity.data.endData,
+                    // }
                 ]
             };
             myChart.clear();
@@ -1198,6 +1201,10 @@ export default {
                         emphasis: {
                             focus: 'series'
                         },
+                        label: {
+                            show: true,
+                            position: 'top'
+                        },
                         // data: [120, 132, 101, 134, 90, 230, 210,100,120,130,140,170]
                         data: this.halfKnotDuration.data
                     },
@@ -1237,7 +1244,7 @@ export default {
                     },
                     series: [
                         {
-                            name: '访问来源',
+                            // name: '预警信息数量',
                             center: ["50%", "35%"], 
                             type: 'pie',
                             radius: ['30%', '50%'],
@@ -1259,7 +1266,7 @@ export default {
                             labelLine: {
                                 show: false
                             },
-                            data: dataList.data.data
+                            data: dataList.data
                         }
                     ]
                 };
@@ -1276,6 +1283,7 @@ export default {
                         left: '3%',
                         right: '4%',
                         bottom: '3%',
+                        top: '8%',
                         containLabel: true
                     },
                     xAxis: {
@@ -1307,6 +1315,7 @@ export default {
                             name: '2011年',
                             type: 'bar',
                             color: '#5AD8A6',
+                            barMaxWidth:50,//最大宽度
                             // data: [0, 2.34, 2.90, 1.04, 13.44, 6.30],
                             data: dataList.data.data,
                             label: {
@@ -1319,6 +1328,13 @@ export default {
             } else if (type == 3) {
                 // 纵向柱状图
                 options = {
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '7%',
+                        top: '8%',
+                        containLabel: true
+                    },
                     xAxis: {
                         type: 'category',
                         // data: ['监察室', '商品检验处', '卫生检疫处',
@@ -1340,9 +1356,9 @@ export default {
                         axisLine: {show:false},
                         axisTick: {show:false},
                         type: 'value',
-                        max: function(value) {
-                            return value.max + 200
-                        },
+                        // max: function(value) {
+                        //     return value.max + 200
+                        // },
                         axisLabel: {
                             textStyle: {
                                 color: 'rgba(0,0,0,0.45)',
@@ -1355,6 +1371,7 @@ export default {
                         data: dataList.data.data,
                         type: 'bar',
                         color: '#F6BD16',
+                        barMaxWidth:50,//最大宽度
                         label: {
                             show: true,
                             position: 'top'
@@ -1372,7 +1389,7 @@ export default {
                     },
                     grid: {
                         left: '3%',
-                        right: '9%',
+                        right: '11%',
                         bottom: '7%',
                         top: '8%',
                         containLabel: true
@@ -1400,9 +1417,9 @@ export default {
                     },
                     yAxis: {
                         type: 'value',
-                        max: function(value) {
-                            return value.max + 400
-                        },
+                        // max: function(value) {
+                        //     return value.max + 400
+                        // },
                         axisLine: {show:false},
                         axisTick: {show:false},
                         axisLabel: {
@@ -1420,7 +1437,7 @@ export default {
                     },
                     series: [
                         {
-                            name: '南宁海关预警信息数量',
+                            name: '预警信息数量',
                             type: 'line',
                             symbolSize: 8,// 拐点大小
                             symbol: 'circle',// 拐点形状
@@ -1532,6 +1549,13 @@ export default {
             background: none;
             border: 1px solid #DCDFE6;
         }
+    }
+    .no-data {
+        width: 100%;
+        color: #999;
+        text-align: center;
+        position: absolute;
+        top: 50%;
     }
     .subtitle {
         padding: 10px 0;
@@ -1649,6 +1673,7 @@ export default {
             .data-show-chart {
                 width: 33%;
                 height: 100%;
+                position: relative;
             }
             #line-chart1,
             #line-chart2,
@@ -1682,6 +1707,7 @@ export default {
             .charts-div {
                 height: 33.3%;
                 width: 100%;
+                position: relative;
             }
             .charts {
                 width: 100%;
