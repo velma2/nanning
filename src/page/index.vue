@@ -75,7 +75,7 @@
                 </div>
                 <div  class="flex-row search-option" style="width: 11%">
                     <span class="title">办理时长</span>
-                    <el-input-number v-model="processingTime" controls-position="right" placeholder="请选择时间"></el-input-number>
+                    <el-input-number v-model="processingTime" controls-position="right" placeholder=""></el-input-number>
                 </div>
                 <div>
                     <el-button  @click="resetValue">重置</el-button>
@@ -94,6 +94,7 @@
                             <span>职能部门</span>
                         </div>
                         <el-table
+                            v-loading="loading"
                             :data="tableData"
                             style="width: 100%;height: 80%;overflow: auto;border: 1px solid rgb(240,240,240);"
                             :row-class-name="tableRowClassName"
@@ -115,6 +116,7 @@
                             <span>隶属海关</span>
                         </div>
                         <el-table
+                            v-loading="loading"
                             :data="subordinateData"
                             style="width: 100%;height: 80%;overflow: auto;border: 1px solid rgb(240,240,240);"
                             :row-class-name="tableRowClassName"
@@ -140,7 +142,7 @@
                             <span class="title-line"></span>
                             <span>{{titleType == 1 ? titleList[0].title[0] : titleList[1].title[0]}}</span>
                         </div>
-                        <div id="line-chart1" class="chart-div"></div>
+                        <div v-loading="loading3" id="line-chart1" class="chart-div"></div>
                         <div class="no-data" v-if="hasData1">- 暂无数据 -</div>
                     </div>
                     <div class="data-show-chart" style="margin-right: .5%;">
@@ -148,7 +150,7 @@
                             <span class="title-line"></span>
                             <span>{{titleType == 1 ? titleList[0].title[1] : titleList[1].title[1]}}</span>
                         </div>
-                        <div id="line-chart2" class="chart-div"></div>
+                        <div v-loading="loading4" id="line-chart2" class="chart-div"></div>
                         <div class="no-data" v-if="hasData2">- 暂无数据 -</div>
                     </div>
                     <div class="data-show-chart">
@@ -156,7 +158,7 @@
                             <span class="title-line"></span>
                             <span>{{titleType == 1 ? titleList[0].title[2] : titleList[1].title[2]}}</span>
                         </div>
-                        <div id="line-chart3" class="chart-div"></div>
+                        <div v-loading="loading5" id="line-chart3" class="chart-div"></div>
                         <div class="no-data" v-if="hasData3">- 暂无数据 -</div>
                     </div>
                 </div>
@@ -165,6 +167,7 @@
                 <div class="content-desc flex">
                     <div class="data-table white-bg">
                         <el-table
+                        v-loading="loading2"
                         :data="curTotalTableData"
                         style="width: 100%;height: 90%;overflow: auto;border: 1px solid rgb(240,240,240);"
                         :row-class-name="tableRowClassName"
@@ -202,16 +205,16 @@
                                 </el-table-column>
                         </el-table>
                         <div style="margin-top: 20px;display: flex;justify-content: flex-end">
-                        <el-pagination @size-change="handleSizeChange"
+                        <el-pagination 
+                            @size-change="handleSizeChange"
                             background
-                            
+                            :page-sizes="[10, 20, 30, 40]"
                             @current-change="handleCurrentChange"
                             :current-page.sync="pagination.page"
                             :page-size="pagination.limit"
-                            layout="total, prev, pager, next, jumper"
+                            layout="total,sizes, prev, pager, next, jumper"
                             :total="pagination.total">
                         </el-pagination>
-                        <!-- :page-sizes="[10, 20, 30, 40]" -->
                     </div>
                     </div>
                     <div class="data-echatrs white-bg">
@@ -220,7 +223,7 @@
                                 <span class="title-line"></span>
                                 <span>预警信息量排名</span>
                             </div>
-                            <div id="line-chart4" class="charts chart-div"></div>
+                            <div v-loading="loading6" id="line-chart4" class="charts chart-div"></div>
                             <div class="no-data" v-if="hasData4">- 暂无数据 -</div>
                         </div>
                         <div class="charts-div" v-if="curSelectOrgType != 1 && curSelectOrgType != 2">
@@ -228,15 +231,15 @@
                                 <span class="title-line"></span>
                                 <span>办结时长均值</span>
                             </div>
-                            <div id="line-chart5" class="charts chart-div"></div>
+                            <div v-loading="loading7" id="line-chart5" class="charts chart-div"></div>
                             <div class="no-data" v-if="hasData5">- 暂无数据 -</div>
                         </div>
                         <div class="charts-div">
                             <div class="subtitle flex-row">
                                 <span class="title-line"></span>
-                                <span>单位：单</span>
+                                <span>预警信息量（单）</span>
                             </div>
-                            <div id="line-chart6" class="charts chart-div"></div>
+                            <div v-loading="loading8" id="line-chart6" class="charts chart-div"></div>
                             <div class="no-data" v-if="hasData6">- 暂无数据 -</div>
                         </div>
                     </div>
@@ -251,17 +254,25 @@
 import echarts from 'echarts'
 import corls from './components/corls'
 // import qs from 'qs'
- import { getTopFive,getOrType,getStatusList,getTableList,getPanoramaList} from '@/api/index'
+import { getTopFive,getOrType,getStatusList,getTableList,getPanoramaList} from '@/api/index'
 export default {
     name: 'Index',
      data () {
         return {
-            hasData1: false,
-            hasData2: false,
-            hasData3: false,
-            hasData4: false,
-            hasData5: false,
-            hasData6: false,
+            hasData1: true,
+            hasData2: true,
+            hasData3: true,
+            hasData4: true,
+            hasData5: true,
+            hasData6: true,
+            loading:false,
+            loading2:false,
+            loading3:false,
+            loading4:false,
+            loading5:false,
+            loading6:false,
+            loading7:false,
+            loading8:false,
             isShow: true,
             timeSet: false, // 预警时间设置
             searchData: {
@@ -278,17 +289,6 @@ export default {
             curSearchData: {},
             searchInput: '', // 搜索框的值
             timeOrgType: '',
-            options2: [{
-                    value: '2',
-                    label: '职能部门',
-                    children: []
-                },
-                {
-                    value: '1',
-                    label: '隶属海关',
-                    children: []
-                },
-            ],
             orgList: {
                 haiguan: [],
                 zhineng: []
@@ -311,16 +311,12 @@ export default {
             statusList: [], // 预警状态类型
             pickerOptions: corls.pickerOptions,
             slectTime: '', // 预警开始时间和结束时间
-            processingTime: '', // 办理时长
+            processingTime: undefined, // 办理时长
             curTotalTableData: [], // 当前展示的表格名称
             curTotalTablesHeader: corls.totalTablesHeader, // 当前展示的表格数据
             tablesHeader: corls.tablesHeader,
-            totalTablesHeader: corls.totalTablesHeader,
-            // tableData: corls.tableData, // 职能部门数据
             tableData: [], // 职能部门数据
             subordinateData: [], // 隶属海关数据
-            // subordinateData: corls.subordinateData, // 隶属海关数据
-            totalTableData: corls.totalTableData,
             pagination: {
                 page: 1,
                 limit: 10,
@@ -333,8 +329,6 @@ export default {
                     id: 'line-chart1',
                     color: '#5B8FF9',
                     data : {
-                        // date: ['202001', '202002','202003','202004','202005','202006','202007' ],
-                        // data: [800, 700, 600, 500, 400, 330, 300, 280]
                         date: [],
                         data: []
                     },
@@ -343,8 +337,6 @@ export default {
                     id: 'line-chart2',
                     color: '#FFC53D',
                     data : {
-                        // date: ['202001', '202002','202003','202004','202005','202006','202007' ],
-                        // data: [800, 700, 600, 500, 400, 330, 300, 280]
                         date: [],
                         data: []
                     },
@@ -353,8 +345,6 @@ export default {
                     id: 'line-chart3',
                     color: '#69C0FF',
                     data : {
-                        // date: ['202001', '202002','202003','202004','202005','202006','202007' ],
-                        // data: [800, 700, 600, 500, 400, 330, 300, 280]
                         date: [],
                         data: []
                     },
@@ -366,23 +356,13 @@ export default {
                     id: 'line-chart1',
                     color: '#5B8FF9',
                     data: {
-                        data:  [
-                            // {value: 1048, name: '防城海关'},
-                            // {value: 735, name: '桂林海关'},
-                            // {value: 580, name: '梧州海关'},
-                            // {value: 484, name: '玉林海关'},
-                            // {value: 300, name: '柳州海关'},
-                            // {value: 300, name: '北海海关'},
-                            // {value: 300, name: '邕邮海关'},
-                        ]
+                        data:  []
                     }
                 },
                 {
                     id: 'line-chart2',
                     color: '#FFC53D',
                     data : {
-                        // date: ['桂林海关', '河池海关', '柳州海关', '玉林海关', '北海海关', '永口海关'],
-                        // data: [0, 2.34, 2.90, 1.04, 13.44, 6.30]
                         date: [],
                         data: []
                     },
@@ -391,8 +371,6 @@ export default {
                     id: 'line-chart3',
                     color: '#69C0FF',
                     data : {
-                        // date: ['202001', '202002','202003','202004','202005','202006','202007' ],
-                        // data: [800, 700, 600, 500, 400, 330, 300, 280]
                         date: [],
                         data: []
                     },
@@ -404,25 +382,13 @@ export default {
                     id: 'line-chart1',
                     color: '#5B8FF9',
                     data: {
-                        data: [
-                            // {value: 1048, name: '关税处'},
-                            // {value: 735, name: '综合业务处'},
-                            // {value: 580, name: '口岸监管处'},
-                            // {value: 484, name: '风险防控分局'},
-                            // {value: 300, name: '监察室'},
-                            // {value: 300, name: '统计分析处'},
-                            // {value: 300, name: '监督内审处'},
-                        ]
+                        data: []
                     }
                 },
                 {
                     id: 'line-chart2',
                     color: '#FFC53D',
                     data : {
-                        // date: ['监察室', '商品检验处', '卫生检疫处',
-                        //     '企业管理和稽查处', '监督内审处', '综合业务处','动植物和视频检验检疫处','关税处','风险防控分局','统计分析处'
-                        //     ],
-                        // data: [120, 0, 150, 80, 70, 110, 130,120,130,150]
                         date: [],
                         data: []
                     },
@@ -433,8 +399,6 @@ export default {
                     data : {
                         date: [],
                         data: []
-                        // date: ['202001', '202002','202003','202004','202005','202006','202007' ],
-                        // data: [800, 700, 600, 500, 400, 330, 300, 280]
                     },
                 }
             ],
@@ -445,31 +409,14 @@ export default {
                 name: [],
                 date: [],
                 data: []
-                // date:['6:00','8:00','10:00','12:00','14:00','16:00','18:00','20:00','22:00'],
-                // data:[
-                //     [600, 700, 100, 500, 200, 300, 100, 100, 500],
-                //     [300, 600, 300, 500, 500, 380, 330, 600, 300],
-                //     [400, 600, 300, 200, 400, 310, 456, 600, 200],
-                //     [700, 100, 800, 800, 400, 390, 555, 600, 333]
-                // ]
             },
             warningQuantity: {
                 date: [],
                 data: []
-                // date: ['1', '2','3','4','5','6','7','8','9','10','11','12' ],
-                // data: [2, 3, 2, 4, 2, 2, 2,2, 4, 2, 2, 2 ],
-                // data: {
-                //     // 预警开始时间
-                //     startData: [2, 3, 2, 4, 2, 2, 2,2, 4, 2, 2, 2 ],
-                //     // 预警结束时间
-                //     endData : [4, 5, 4, 5, 4, 10, 22,4, 5, 4, 10,7 ]
-                // }
             },
             halfKnotDuration: {
                 date: [],
                 data: []
-                // date: [1,2,3,4,5,6,7,8,9,10,11,12],
-                // data: [120, 132, 101, 134, 90, 230, 210,100,120,130,140,170]
             },
             rowList: null,
             titleType: 2,
@@ -515,6 +462,7 @@ export default {
     methods: {
         // 获取列表数据
         getTableList() {
+            this.loading2 = true
             this.updateSearchData()
             this.$nextTick(() => {
                 getTableList(this.curSearchData).then((res)=> {
@@ -528,7 +476,9 @@ export default {
                     // this.pagination.size =  result.size
                     this.pagination.page = result.current
                     this.pagination.total = result.total 
+                    this.loading2 = false
                 }).catch((err)=> {
+                    this.loading2 = false
                     console.log(err)
                 })
             });
@@ -536,23 +486,26 @@ export default {
         },
         // 获取图表数据
         getData(type) {
+            this.loading3 = true
+            this.loading4 = true
+            this.loading5 = true
+            this.loading6 = true
+            this.loading7 = true
+            this.loading8 = true
             this.updateSearchData(type)
             getPanoramaList(this.curSearchData).then((res)=> {
                 let result = res.data.data
-                 console.log(result)
-                 console.log('当前机构类型'+this.curSelectOrgType)
                  result.forEach((item)=> {
                      if (item.type == 3) {
                          this.hasData1 = false
                          if (item.x.length < 1) {
+                            this.loading3 = false
                             this.hasData1 = true
                          }
                          // 有选具体机构
                         if (this.orgCodes && this.orgCodes.length == 1) {
-                            if (this.orgCodes && this.orgCodes.length > 0) {
-                                this.lineChartsData[0].data.date = item.x
-                                this.lineChartsData[0].data.data = item.y[0]
-                            }
+                            this.lineChartsData[0].data.date = item.x
+                            this.lineChartsData[0].data.data = item.y[0]
                         // 选了隶属海关时候
                         } else if (this.curSelectOrgType == 1) {
                             this.lineChartsData2[0].data = []
@@ -562,7 +515,6 @@ export default {
                                 object.name = item.x[j]
                                 this.lineChartsData2[0].data.push(object)
                             }
-                            console.log(this.lineChartsData2[0].data)
                         // 选了职能部门
                         } else if (this.curSelectOrgType == 2) {
                             this.lineChartsData3[0].data = []
@@ -572,11 +524,11 @@ export default {
                                 object.name = item.x[j]
                                 this.lineChartsData3[0].data.push(object)
                             }
-                            console.log(this.lineChartsData3[0].data)
                         }
                     } else if (item.type == 4) {
                         this.hasData2 = false
                          if (item.x.length < 1) {
+                             this.loading4 = false
                             this.hasData2 = true
                          }
                         if (this.orgCodes && this.orgCodes.length == 1) {
@@ -594,6 +546,7 @@ export default {
                     } else if (item.type == 5) {
                         this.hasData3 = false
                          if (item.x.length < 1) {
+                            this.loading5 = false
                             this.hasData3 = true
                          }
                         if (this.orgCodes && this.orgCodes.length == 1) {
@@ -608,37 +561,67 @@ export default {
                         }
                     } else if (item.type == 6) {
                         this.hasData4 = false
-                         if (item.x.length < 1) {
-                            this.hasData4 = true
-                         }
-                        this.warningQuantitySort.name = item.orgName
-                        this.warningQuantitySort.date = item.x
                         this.warningQuantitySort.data = []
-                        for(let j = 0; j < item.orgName.length ; j++) {
-                            this.warningQuantitySort.data.push(item.y[j])
+                        if (item.x.length < 1) {
+                            this.loading6 = false
+                            this.hasData4 = true
+                            let chartDom = document.getElementById('line-chart4');
+                            let myChart = echarts.init(chartDom);
+                            myChart.clear();
+                        } else {
+                            this.warningQuantitySort.name = item.orgName
+                            this.warningQuantitySort.date = item.x
+                            for(let j = 0; j < item.orgName.length ; j++) {
+                                this.warningQuantitySort.data.push(item.y[j])
+                            } 
+                            this.loading6 = false
+                            this.lineCharts4()
                         }
-                        this.lineCharts4()
                     } else if (item.type == 7) {
                         this.hasData5 = false
-                         if (item.x.length < 1) {
-                            this.hasData5 = true
-                         }
                         this.warningQuantity.date = item.x
                         this.warningQuantity.data = item.y[0]
-                        this.lineCharts5()
+                        if (item.x.length < 1) {
+                            this.loading7 = false
+                            this.hasData5 = true
+                            let chartDom = document.getElementById('line-chart5');
+                            let myChart = echarts.init(chartDom);
+                            myChart.clear();
+                        } else {
+                            this.lineCharts5()
+                            this.loading7 = false
+                        }
+                        
                     } else if (item.type == 8) {
                         this.hasData6 = false
-                        console.log(item.x.length)
-                         if (item.x.length < 1) {
-                            this.hasData6 = true
-                         }
                         this.halfKnotDuration.date = item.x
                         this.halfKnotDuration.data = item.y[0]
-                        this.lineCharts6()
+                        if (item.x.length < 1) {
+                            this.hasData6 = true
+                            this.loading8 = false
+                            let chartDom = document.getElementById('line-chart6');
+                            let myChart = echarts.init(chartDom);
+                            myChart.clear();
+                        } else {
+                            this.loading8 = false
+                            this.lineCharts6()
+                        }
                     }
                  })
-                 if (this.orgCodes && this.orgCodes.length == 1) {
-                     this.curShowChartsData = this.lineChartsData
+                 
+                 this.loadChart()
+            }).catch((err)=> {
+                console.log(err)
+            })
+        },
+        // 中间三个图标的图表渲染
+        loadChart() {
+            if (!this.hasData1 && !this.hasData2 && !this.hasData3) {
+                this.loading3 = false
+                this.loading4 = false
+                this.loading5 = false
+                if (this.orgCodes && this.orgCodes.length == 1) {
+                    this.curShowChartsData = this.lineChartsData
                     for(let j = 0; j < this.curShowChartsData.length ; j++) {
                         this.lineCharts(j,this.curShowChartsData[j],1)
                     }
@@ -652,10 +635,26 @@ export default {
                     for(let j = 0; j < this.curShowChartsData.length ; j++) {
                         this.lineCharts(j,this.curShowChartsData[j],3)
                     }
+                }   
+            } else {
+                if (this.hasData1) {
+                    let chartDom = document.getElementById('line-chart1');
+                    let myChart = echarts.init(chartDom);
+                    myChart.clear();
+                }
+                if (this.hasData2) {
+                    let chartDom2 = document.getElementById('line-chart2');
+                    let myChart2 = echarts.init(chartDom2);
+                    myChart2.clear();
                 } 
-            }).catch((err)=> {
-                console.log(err)
-            })
+                if (this.hasData3) {
+                    let chartDom3 = document.getElementById('line-chart3');
+                    let myChart3 = echarts.init(chartDom3);
+                    myChart3.clear();
+                } 
+            }
+            
+            
         },
         // 获取预警状态
         getStatus() {
@@ -714,13 +713,11 @@ export default {
         // 重置
         resetValue() {
             this.searchInput = ''
-            // this.orgType = ''
-            // this.orgCodes = ''
             this.timeSet = false
             this.curSelectOrgType = 0
             this.isShow = true
             this.slectTime = ''
-            this.processingTime = ''
+            this.processingTime = undefined
             this.orgType = '1'
             this.orgCodes = ['7200']
             this.orgOptions = this.orgList.haiguan
@@ -789,30 +786,34 @@ export default {
                     this.curSearchData[key] = obj[key]
                 }
             });
-            console.log('length为'+length)
+            // page和current是默认传值， 重置后再次默认选中南宁海关
             if (length == 3) {
                 this.curSearchData.orgType = 1
                 this.curSearchData.orgCodes = [7200]
             }
         },
+        // 获取本月预计信息量排行TOP5数据
         getTopFiveData() {
+            this.loading = true
            getTopFive().then((res) => {
               let result = res.data.data
-              for(let i = 0; i < result.length ; i++) {
-                 if (result[i].type == 1) {
-                    this.subordinateData = result[i].customsTopDtos
-                 } else {
-                    this.tableData = result[i].customsTopDtos
-                 }
+                for(let i = 0; i < result.length ; i++) {
+                    if (result[i].type == 1) {
+                        this.subordinateData = result[i].customsTopDtos
+                    } else {
+                        this.tableData = result[i].customsTopDtos
+                    }
                 }
+                this.loading = false
             }).catch(err =>{
+                this.loading = false
                 console.log(err)
             })
        },
         // 分页属性
         handleSizeChange (val) {
             console.log(val)
-            this.pagination.size = val
+            this.pagination.limit = val
             this.getTableList()
         },
         // 点击页码跳转
@@ -835,9 +836,11 @@ export default {
             let chartDom = document.getElementById(dataList.id);
             let myChart = echarts.init(chartDom);
             let option;
+            // 有选一个具体机构
             if (type == 1) {
-                 option = this.changeChartsOption(4,dataList)
+                option = this.changeChartsOption(4,dataList)
             } else if (type == 2) {
+                // 隶属海关相关展示图
                 if (index == 0) {
                     option = this.changeChartsOption(1,dataList)
                 } else if (index == 1) {
@@ -846,6 +849,7 @@ export default {
                     option = this.changeChartsOption(4,dataList)
                 }
             } else if (type == 3) {
+                // 职能部门相关展示图
                 if (index == 0) {
                     option = this.changeChartsOption(1,dataList)
                 } else if (index == 1) {
@@ -894,7 +898,6 @@ export default {
                 }
                 seriesList.push(object)
             }
-            console.log(seriesList)
             let option = {
                 title: {
                     // text: '江门市蓬江区芝山五金工艺制品有限公司产值估计'
@@ -1051,7 +1054,7 @@ export default {
                                 borderWidth: 4,
                             }
                         },
-                        name: '',
+                        name: '办结时长均值',
                         type: 'line',
                         color: '#00DAFF',
                         areaStyle: {
@@ -1073,55 +1076,9 @@ export default {
                                 },
                             }
                         },
-                        // data: ['400', '400', '400', '500', '400', '700', '400', '400', '400', '400', '400', '400' ],
-                        // data: [2, 3, 2, 4, 2, 2, 2,2, 4, 2, 2, 2 ],
-                        // data: this.warningQuantity.data.startData,
                         data: this.warningQuantity.data,
                     },
-                    // {
-                    //     symbolSize: 8,// 拐点大小
-                    //     symbol: 'circle',// 拐点形状
-                    //     itemStyle: {
-                    //         normal: {
-                    //             color: '#FDCA15',
-                    //             borderColor:'#fff',//拐点边框颜色
-                    //             borderWidth:2,//拐点边框大小
-                    //             lineStyle: {
-                    //                 color: '#FDCA15'
-                    //             }
-                    //         },
-                    //         // 鼠标悬浮拐点样式修改
-                    //         emphasis:{
-                    //             color: '#FDCA15',
-                    //             borderColor: '#fff',
-                    //             borderWidth: 4,
-                    //         }
-                    //     },
-                    //     name: '预警结束时间',
-                    //     type: 'line',
-                    //     color: '#FDCA15',
-                    //     areaStyle: {
-                    //         normal: {
-                    //             color: {
-                    //                 type: 'linear',
-                    //                 x0: 0,
-                    //                 y0: 0,
-                    //                 x2: 0,
-                    //                 y2: 1,
-                    //                 colorStops: [{
-                    //                     offset: 0,
-                    //                     color: '#FDCA15',
-                    //                 }, {
-                    //                     offset: 1,
-                    //                     color: 'white',
-                    //                 }],
-                    //                 globalCoord: false
-                    //             },
-                    //         }
-                    //     },
-                    //     // data: [4, 5, 4, 5, 4, 10, 22,4, 5, 4, 10,7 ],
-                    //     data: this.warningQuantity.data.endData,
-                    // }
+                    
                 ]
             };
             myChart.clear();
@@ -1194,7 +1151,7 @@ export default {
                 },
                 series: [
                     {
-                        name: '办结时长',
+                        name: '预警信息量',
                         type: 'bar',
                         stack: '广告',
                         color: '#5AD8A6',
@@ -1254,7 +1211,7 @@ export default {
                             avoidLabelOverlap: false,
                             label: {
                                 show: false,
-                                position: 'center'
+                                position: 'center',
                             },
                             emphasis: {
                                 label: {
@@ -1281,7 +1238,7 @@ export default {
                     },
                     grid: {
                         left: '3%',
-                        right: '4%',
+                        right: '10%',
                         bottom: '3%',
                         top: '8%',
                         containLabel: true
@@ -1291,10 +1248,12 @@ export default {
                         boundaryGap: [0, 0.01],
                         axisLine: {show:false},
                         axisTick: {show:false},
+                        max: 100,
                         axisLabel: {  
                             textStyle: {
                                 color: 'rgba(0,0,0,0.45)',
-                            } 
+                            },
+                            formatter: '{value}%',
                         }, 
                     },
                     yAxis: {
@@ -1319,6 +1278,9 @@ export default {
                             // data: [0, 2.34, 2.90, 1.04, 13.44, 6.30],
                             data: dataList.data.data,
                             label: {
+                                formatter: function(a) {
+                                    return a.value+'%'
+                                },
                                 show: true,
                                 position: 'right'
                             },
@@ -1328,11 +1290,17 @@ export default {
             } else if (type == 3) {
                 // 纵向柱状图
                 options = {
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'shadow'
+                        },
+                    },
                     grid: {
                         left: '3%',
                         right: '4%',
                         bottom: '7%',
-                        top: '8%',
+                        top: '10%',
                         containLabel: true
                     },
                     xAxis: {
@@ -1340,30 +1308,29 @@ export default {
                         // data: ['监察室', '商品检验处', '卫生检疫处',
                         // '企业管理和稽查处', '监督内审处', '综合业务处','动植物和视频检验检疫处','关税处','风险防控分局','统计分析处'
                         // ],
-                        data: dataList.data.date,
                         axisTick: {show:false},
                         axisLine: {
                             lineStyle: {
-                                color: 'rgba(0,0,0,0.5)',
-                            }   
+                                color: 'rgba(0,0,0,0.05)',
+                            }
                         },
                         axisLabel: {
                             interval: 0, // 强制文字产生间隔
                             rotate: -20,
                         },
+                        data: dataList.data.date,
                     },
                     yAxis: {
                         axisLine: {show:false},
                         axisTick: {show:false},
                         type: 'value',
-                        // max: function(value) {
-                        //     return value.max + 200
-                        // },
+                        max: 100,
                         axisLabel: {
                             textStyle: {
                                 color: 'rgba(0,0,0,0.45)',
                                 fontSize: 14,
-                            }
+                            },
+                            formatter: '{value}%',
                         },
                     },
                     series: [{
@@ -1374,7 +1341,10 @@ export default {
                         barMaxWidth:50,//最大宽度
                         label: {
                             show: true,
-                            position: 'top'
+                            position: 'top',
+                            formatter: function(a) {
+                                return a.value+'%'
+                            },
                         },
                     }]
                 };
@@ -1498,8 +1468,10 @@ export default {
    
     /deep/{
         .el-select .el-input {
-            // width: 130px;
             width: 100%;
+        }
+        .el-pagination__sizes .el-select .el-input {
+            width: 100px;
         }
         .el-table {
             .row-class {
@@ -1689,12 +1661,12 @@ export default {
             box-sizing: border-box;
             .data-table {
                 width: 66%;
-                height: 1060px;
+                height: 700px;
                 margin-right: 1%;
             }
             .data-echatrs {
                 width: 33%;
-                height: 1060px;
+                height: 700px;
             }
             .data-table,
             .data-echatrs {
@@ -1705,7 +1677,7 @@ export default {
                 box-sizing: border-box;
             }
             .charts-div {
-                height: 33.3%;
+                height: 50%;
                 width: 100%;
                 position: relative;
             }
