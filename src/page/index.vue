@@ -714,7 +714,6 @@ export default {
         resetValue() {
             this.searchInput = ''
             this.timeSet = false
-            this.curSelectOrgType = 0
             this.isShow = true
             this.slectTime = ''
             this.processingTime = undefined
