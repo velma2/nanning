@@ -1287,6 +1287,7 @@ export default {
                     ]
                 };
             } else if (type == 3) {
+                console.log(dataList.data.date)
                 // 纵向柱状图
                 options = {
                     tooltip: {
@@ -1316,6 +1317,9 @@ export default {
                         axisLabel: {
                             interval: 0, // 强制文字产生间隔
                             rotate: -20,
+                            textStyle: {
+                                color: 'rgba(0,0,0,0.5)',
+                            } 
                         },
                         data: dataList.data.date,
                     },
