@@ -75,7 +75,7 @@
                 </div>
                 <div  class="flex-row search-option" style="width: 11%">
                     <span class="title">办理时长</span>
-                    <el-input-number v-model="processingTime" controls-position="right" placeholder=""></el-input-number>
+                    <el-input-number v-model="processingTime" :min="1" controls-position="right" placeholder=""></el-input-number>
                 </div>
                 <div>
                     <el-button  @click="resetValue">重置</el-button>
@@ -98,7 +98,6 @@
                             :data="tableData"
                             style="width: 100%;height: 80%;overflow: auto;border: 1px solid rgb(240,240,240);"
                             :row-class-name="tableRowClassName"
-                            :default-sort = "{prop: 'date', order: 'descending'}"
                             >
                             <el-table-column v-for="(item,index) in tablesHeader"
                                 :key="index"
@@ -120,8 +119,6 @@
                             :data="subordinateData"
                             style="width: 100%;height: 80%;overflow: auto;border: 1px solid rgb(240,240,240);"
                             :row-class-name="tableRowClassName"
-                            
-                            :default-sort = "{prop: 'date', order: 'descending'}"
                             >
                             <el-table-column v-for="(item,index) in tablesHeader"
                                 :key="index"
@@ -171,8 +168,6 @@
                         :data="curTotalTableData"
                         style="width: 100%;height: 90%;overflow: auto;border: 1px solid rgb(240,240,240);"
                         :row-class-name="tableRowClassName"
-                        
-                        :default-sort = "{prop: 'date', order: 'descending'}"
                         >
                             <el-table-column
                                 type="index"
