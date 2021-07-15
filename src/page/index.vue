@@ -302,7 +302,7 @@ export default {
             selectValue: '', // 搜索选择的类型值
             orgType: '1', // 组织机构选中的值
             curSelectOrgType: 0,
-            orgCodes:['7200'], // 组织机构下面的分支
+            orgCodes:'', // 组织机构下面的分支
             statusList: [], // 预警状态类型
             pickerOptions: corls.pickerOptions,
             slectTime: '', // 预警开始时间和结束时间
@@ -414,7 +414,7 @@ export default {
                 data: []
             },
             rowList: null,
-            titleType: 2,
+            titleType: 1,
             titleList: [
                 {
                     type: 1,
@@ -488,6 +488,11 @@ export default {
             this.loading7 = true
             this.loading8 = true
             this.updateSearchData(type)
+            if (this.orgCodes && this.orgCodes.length == 1) {
+                this.titleType = 1
+            } else {
+                this.titleType = 2
+            }
             getPanoramaList(this.curSearchData).then((res)=> {
                 let result = res.data.data
                  result.forEach((item)=> {
@@ -692,6 +697,7 @@ export default {
                         }
                     }
                     this.orgOptions = this.orgList.haiguan
+                    this.orgCodes = ['7200']
                }
                
             }).catch(err =>{
@@ -892,6 +898,7 @@ export default {
                     },
                     name: this.warningQuantitySort.name[j],
                     type: 'line',
+                    stack: '总量',
                     color: this.warningQuantitySort.colorList[j],
                     // data: [600, 700, 100, 500, 200, 300, 100, 100, 500],
                     data: this.warningQuantitySort.data[j]
@@ -1088,7 +1095,7 @@ export default {
             });
         },
         
-        //  半结时长
+        //  预警信息量(单)
         lineCharts6() {
             let chartDom = document.getElementById('line-chart6');
             let myChart = echarts.init(chartDom);
@@ -1097,6 +1104,21 @@ export default {
                     trigger: 'axis',
                     axisPointer: {            // 坐标轴指示器，坐标轴触发有效
                         type: 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+                    },
+                    formatter: function(a) {
+                        if (a[0].axisValue == 1) {
+                            return `${a[0].marker}小于等于1天<br/>预警信息量: ${a[0].value}`
+                        } else if (a[0].axisValue == 2) {
+                            return `${a[0].marker}大于1天小于等于5天<br/>预警信息量: ${a[0].value}`
+                        } else if (a[0].axisValue == 3) {
+                            return `${a[0].marker}大于5天小于等于7天<br/>预警信息量: ${a[0].value}`
+                        } else if (a[0].axisValue == 4) {
+                            return `${a[0].marker}大于7天小于等于15天<br/>预警信息量: ${a[0].value}`
+                        } else if (a[0].axisValue == 5) {
+                            return `${a[0].marker}大于15天小于等于30天<br/>预警信息量: ${a[0].value}`
+                        } else if (a[0].axisValue == 6) {
+                            return `${a[0].marker}大于30天<br/>预警信息量: ${a[0].value}`
+                        }
                     }
                 },
                 // legend: {},
@@ -1165,16 +1187,6 @@ export default {
                         // data: [120, 132, 101, 134, 90, 230, 210,100,120,130,140,170]
                         data: this.halfKnotDuration.data
                     },
-                    // {
-                    //     name: '联盟广告',
-                    //     type: 'bar',
-                    //     color:'#FFC53D',
-                    //     stack: '广告',
-                    //     emphasis: {
-                    //         focus: 'series'
-                    //     },
-                    //     data: [11, 22, 33, 44, 55, 66, 33,10,22,11,55,66]
-                    // }, 
                 ]
             };
             myChart.clear();
@@ -1234,6 +1246,17 @@ export default {
                         trigger: 'axis',
                         axisPointer: {
                             type: 'shadow'
+                        },
+                        formatter: function(params) {
+                            let res = ''
+                            for (var i = 0; i < params.length; i++) {
+                            res +=
+                                params[i].marker +
+                                params[0].name+
+                                "：" +
+                                params[i].data+'%';
+                            }
+                            return res
                         }
                     },
                     grid: {
@@ -1296,6 +1319,17 @@ export default {
                         axisPointer: {
                             type: 'shadow'
                         },
+                        formatter: function(params) {
+                            let res = ''
+                            for (var i = 0; i < params.length; i++) {
+                            res +=
+                                params[i].marker +
+                                params[0].name+
+                                "：" +
+                                params[i].data+'%';
+                            }
+                            return res
+                        }
                     },
                     grid: {
                         left: '3%',
