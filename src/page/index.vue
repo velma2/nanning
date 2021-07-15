@@ -606,6 +606,12 @@ export default {
                  
                  this.loadChart()
             }).catch((err)=> {
+                this.loading3 = false
+                this.loading4 = false
+                this.loading5 = false
+                this.loading6 = false
+                this.loading7 = false
+                this.loading8 = false
                 console.log(err)
             })
         },
